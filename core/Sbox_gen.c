@@ -1,8 +1,9 @@
 #include "aes.h"
 #include <stdio.h>
 
-byte_t Sbox[256];
-bool Sbox_is_initialized = false;
+byte_t Sbox_arr[256];
+byte_t inv_Sbox_arr[256];
+bool Sbox_is_initialized;
 
 //
 byte_t affine_transform(byte_t byte)
@@ -58,7 +59,8 @@ void init_Sbox(void)
         byte_t byte = (byte_t) i;
         byte = inverse(byte);
         byte = affine_transform(byte);
-        Sbox[i] = byte;
+        Sbox_arr[i] = byte;
+        inv_Sbox_arr[byte] = i;
     }
 
     Sbox_is_initialized = true;

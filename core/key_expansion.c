@@ -12,29 +12,20 @@ static const byte_t round_constants[10] = {
 
 word_t rot_word(word_t word)
 {
-    byte_t first = word.b[0]; 
-    word.b[0] = word.b[1];
-    word.b[1] = word.b[2]; 
-    word.b[2] = word.b[3]; 
-    word.b[3] = first; 
+    byte_t first = word.byte[0]; 
+    word.byte[0] = word.byte[1];
+    word.byte[1] = word.byte[2]; 
+    word.byte[2] = word.byte[3]; 
+    word.byte[3] = first; 
     return word;
 }
 
 word_t sub_word(word_t word)
 {   
     for(int i = 0; i < 4; i++) {
-        word.b[i] = Sbox[word.b[i]]; 
+        word.byte[i] = Sbox(word.byte[i]); 
     }
     return word;
-}
-
-word_t add_words(word_t word1, word_t word2)
-{   
-    word_t output;
-    for(int i = 0; i < 4; i++) {
-        output.b[i] = word1.b[i]^word2.b[i];
-    }
-    return output;
 }
 
 round_keys_t expand_key(aes_key_t key)

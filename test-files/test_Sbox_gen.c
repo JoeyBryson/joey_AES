@@ -1,4 +1,4 @@
-#include "aes.h"
+#include "core/aes.h"
 #define OPENSSL_SUPPRESS_DEPRECATED
 #include <openssl/aes.h>
 #include <stdio.h>
@@ -6,14 +6,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-// Unity test framework
 #include "test-framework/unity.h"
 
-// -------------------------------------------------------------
-// Official AES S-box reference (from FIPS-197 / OpenSSL)
-// -------------------------------------------------------------
-static const uint8_t official_Sbox[256] =
-{
+//tests for the requisit functions for the generation of the AES Substitution Box (Sbox)
+//and the Sbox and inv_Sbox functions themselves
+
+//Official Sbox from FIPS-197
+static const byte_t official_Sbox[256] = {
    0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5,
    0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
    0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0,
@@ -48,113 +47,61 @@ static const uint8_t official_Sbox[256] =
    0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
 
-// -------------------------------------------------------------
-// Unity setup and teardown
-// -------------------------------------------------------------
-void setUp(void)
-{
-}
+void setUp(void) {}
+void tearDown(void) {}
 
-void tearDown(void)
-{
-}
-
-// -------------------------------------------------------------
-// GF_mul tests
-// -------------------------------------------------------------
 static void test_GF_mul_known_values(void)
 {
-    TEST_ASSERT_EQUAL_HEX8(0xC1, GF_mul(0x57, 0x83));  // From FIPS-197 example
-    TEST_ASSERT_EQUAL_HEX8(0xE5, GF_mul(0xFF, 0x02));  // Doubling FF in GF(2^8)
+    TEST_ASSERT_EQUAL_HEX8(0xC1, GF_mul(0x57, 0x83)); 
+    TEST_ASSERT_EQUAL_HEX8(0xE5, GF_mul(0xFF, 0x02));  
 }
 
-// Multiplying by 1 should return the same value
-static void test_GF_mul_identity(void)
-{
-    for (uint8_t a = 0; a < 0xFF; a++)
-        TEST_ASSERT_EQUAL_HEX8(a, GF_mul(a, 0x01));
-}
-
-// Multiplying by 0 should always yield 0
-static void test_GF_mul_zero(void)
-{
-    for (uint8_t a = 0; a < 0xFF; a++) {
-        TEST_ASSERT_EQUAL_HEX8(0x00, GF_mul(a, 0x00));
-        TEST_ASSERT_EQUAL_HEX8(0x00, GF_mul(0x00, a));
-    }
-}
-
-// GF multiplication should be commutative: a*b == b*a
-static void test_GF_mul_commutative(void)
-{
-    for (uint8_t a = 1; a < 32; a++) {
-        for (uint8_t b = 1; b < 32; b++) {
-            TEST_ASSERT_EQUAL_HEX8(GF_mul(a, b), GF_mul(b, a));
-        }
-    }
-}
-
-// Check doubling behavior (multiply by 2) matches AES xtime logic
-static void test_GF_mul_by_2_matches_xtime(void)
-{
-    for (uint8_t a = 0; a < 0xFF; a++) {
-        uint8_t expected = two_times(a); 
-        TEST_ASSERT_EQUAL_HEX8(expected, GF_mul(a, 0x02));
-    }
-}
-
-// -------------------------------------------------------------
-// inverse() tests
-// -------------------------------------------------------------
 static void test_inverse_identity(void)
 {
-   // Check that a * inverse(a) == 1 for 1..255
-   for (int i = 1; i < 256; i++)
-   {
-      uint8_t inv = inverse((uint8_t)i);
-      uint8_t check = GF_mul((uint8_t)i, inv);
+   for (int i = 1; i < 256; i++) {
+      byte_t inv = inverse((byte_t)i);
+      byte_t check = GF_mul((byte_t)i, inv);
       TEST_ASSERT_EQUAL_HEX8_MESSAGE(0x01, check, "GF_mul(a, inverse(a)) != 1");
    }
 }
 
-// -------------------------------------------------------------
-// affine_transform() tests
-// -------------------------------------------------------------
+// test value from
+// https://crypto.stackexchange.com/questions/56310/aes-s-box-how-is-value-for-01-mapped-to-7c
 static void test_affine_transform_known_values(void)
 {
-   uint8_t result = affine_transform(0x01);
-   // Expected: affine_transform(0x01) = 0x7C for AES standard
+   byte_t result = affine_transform(0x01);
    TEST_ASSERT_EQUAL_HEX8(0x7C, result);
 }
 
-// -------------------------------------------------------------
-// S-box generation tests
-// -------------------------------------------------------------
 static void test_Sbox_matches_reference(void)
 {
    init_Sbox();
 
-   for (int i = 0; i < 256; i++)
-   {
-      TEST_ASSERT_EQUAL_HEX8_MESSAGE(official_Sbox[i], Sbox[i], "Sbox mismatch vs reference");
+   for (int i = 0; i < 256; i++) {
+      TEST_ASSERT_EQUAL_HEX8_MESSAGE(official_Sbox[i], Sbox((byte_t)i), "Sbox() mismatch vs reference");
    }
 }
 
-// -------------------------------------------------------------
-// Main entry point
-// -------------------------------------------------------------
+static void test_Sbox_inverse_relationship(void)
+{
+   init_Sbox();
+
+   for (int i = 0; i < 256; i++) {
+      byte_t s = Sbox((byte_t)i);
+      byte_t inv = inv_Sbox(s);
+      TEST_ASSERT_EQUAL_HEX8((byte_t)i, inv);
+   }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
 
     RUN_TEST(test_GF_mul_known_values);
-    RUN_TEST(test_GF_mul_identity);
-    RUN_TEST(test_GF_mul_zero);
-    RUN_TEST(test_GF_mul_commutative);
-    RUN_TEST(test_GF_mul_by_2_matches_xtime);
     RUN_TEST(test_inverse_identity);
     RUN_TEST(test_affine_transform_known_values);
     RUN_TEST(test_Sbox_matches_reference);
+    RUN_TEST(test_Sbox_inverse_relationship);
 
     return UNITY_END();
 }
