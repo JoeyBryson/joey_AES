@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-//Usefull functions for testing and debugging
+
 
 void print_round_keys(const round_keys_t* round_keys)
 {
