@@ -23,6 +23,10 @@ typedef struct {
     size_t num_padding_bytes;
 } state_arr_t;
 
+aes_key_t create_random_key(alg_t alg);
+aes_key_t create_key_from_file(char* key_path);
+void write_key_file(FILE* file_ptr, aes_key_t key);
+FILE* build_key_file_ptr(const char* dir, const char* name);
 
 state_t x_or_states(state_t state_a, state_t state_b);
 void buffer_to_state(state_t* state, byte_t* buffer);
@@ -48,7 +52,6 @@ FILE* build_plain_file_ptr(const char* plain_dir, byte_arr_t byte_arr);
 
 /* high-level operations */
 void encrypt_file(const char* plaintext_path, const char* cipher_dir, const char* cipher_name, aes_key_t key);
-void decrypt_file(const char* cipher_path, const char* plain_path, aes_key_t key);
 state_t gen_iv(void);
 
 #endif

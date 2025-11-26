@@ -30,8 +30,8 @@ state_arr_t read_cipher_file_to_states(FILE* file_ptr, alg_t* file_alg, state_t*
     magic[7] = '\0';
     if(strcmp(magic, magics[AES128]) == 0) {
         *file_alg = AES128;
-    } else if (strcmp(magic, magics[AES196]) == 0) {
-        *file_alg = AES196;
+    } else if (strcmp(magic, magics[AES192]) == 0) {
+        *file_alg = AES192;
     } else if (strcmp(magic, magics[AES256]) == 0) {
         *file_alg = AES256; 
     } else {

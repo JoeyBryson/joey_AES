@@ -36,6 +36,8 @@ void test_add_words(void) {
     }
 }
 
+
+
 //compares my key expansion with common cryptographic library openssl
 void compare_with_openssl(aes_key_t key, round_keys_t rk) {
     int Nk = key.num_key_words;

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 typedef enum{
     AES128,
-    AES196,
+    AES192,
     AES256
 } alg_t;
 
