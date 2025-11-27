@@ -1,6 +1,11 @@
 #include "utils.h"
-#include <unistd.h>
-#include <sys/stat.h>
+#ifdef _WIN32
+    #include <windows.h>
+    #include <io.h>
+#else
+    #include <unistd.h>
+    #include <sys/stat.h>
+#endif
 #define MAX_NAME_LEN 255
 
 state_arr_t
@@ -8,6 +13,7 @@ read_cipher_file_to_states(FILE* file_ptr, alg_t* file_alg, state_t* init_vector
 {
 	if (file_ptr == NULL) {
 		fprintf(stderr, "Error: Cipher file not accessible\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -19,6 +25,7 @@ read_cipher_file_to_states(FILE* file_ptr, alg_t* file_alg, state_t* init_vector
 
 	if (file_size < 0) {
 		fprintf(stderr, "Error: Cipher file size not known\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -38,6 +45,7 @@ read_cipher_file_to_states(FILE* file_ptr, alg_t* file_alg, state_t* init_vector
 		*file_alg = AES256;
 	} else {
 		fprintf(stderr, "Error: Cipher file magic invalid\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -52,6 +60,7 @@ read_cipher_file_to_states(FILE* file_ptr, alg_t* file_alg, state_t* init_vector
 	long remaining = file_size - pos_after_header;
 	if (remaining < 16 || (remaining % 16) != 0) {
 		fprintf(stderr, "Error: Cipher file size invalid\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -83,6 +92,7 @@ void write_plain_states_to_file(state_arr_t state_arr, const char* path)
 
 	if (file_ptr == NULL) {
 		fprintf(stderr, "Error: File creation failed\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -101,7 +111,6 @@ void write_plain_states_to_file(state_arr_t state_arr, const char* path)
 byte_arr_t state_arr_to_byte_arr(state_arr_t state_arr)
 {
 	byte_arr_t byte_arr;
-	/* Debug: print state_arr values used to compute byte array size */
 	size_t num_bytes = 16 * state_arr.num_states - state_arr.num_padding_bytes;
 	byte_arr.bytes = malloc(num_bytes * sizeof(byte_t));
 
@@ -120,23 +129,30 @@ byte_arr_t state_arr_to_byte_arr(state_arr_t state_arr)
 		byte_idx += 16;
 	}
 
-	/* last state: copy only (16 - padding) bytes */
 	state_to_buffer(&state_arr.states[state_arr.num_states - 1], buffer);
 	size_t last_bytes = 16 - state_arr.num_padding_bytes;
 	memcpy(&byte_arr.bytes[byte_idx], buffer, last_bytes);
 
-	/* DEBUG: print reconstructed byte_arr header and lengths */
-	/* silent in production: removed debug printing */
 	return byte_arr;
 }
 
 FILE* build_plain_file_ptr(const char* dir, byte_arr_t byte_arr, char* outpath)
 {
+#ifndef _WIN32
 	struct stat st;
 	if (!(stat(dir, &st) == 0 && S_ISDIR(st.st_mode))) {
 		fprintf(stderr, "Error: Invalid plainfile directory \'%s\'\n", dir);
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
+#else
+	DWORD attrib = GetFileAttributesA(dir);
+	if (attrib == INVALID_FILE_ATTRIBUTES || !(attrib & FILE_ATTRIBUTE_DIRECTORY)) {
+		fprintf(stderr, "Error: Invalid plainfile directory \'%s\'\n", dir);
+		SUGGEST_HELP_IF_CLI();
+		exit(EXIT_FAILURE);
+	}
+#endif
 
 	size_t name_len = byte_arr.bytes[0];
 	char name[name_len + 1];
@@ -161,6 +177,7 @@ FILE* build_plain_file_ptr(const char* dir, byte_arr_t byte_arr, char* outpath)
 	if (file_ptr == NULL) {
 		fprintf(stderr, "Error: Plainfile recreation failed (tried path: %s)\n", path);
 		perror("fopen");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 	return file_ptr;
@@ -173,6 +190,7 @@ void rewrite_plain_file_from_byte_arr(FILE* plain_file_ptr, byte_arr_t byte_arr)
 	size_t content_len = byte_arr.num_bytes - 1 - name_len;
 	if (fwrite(content, sizeof(byte_t), content_len, plain_file_ptr) != content_len) {
 		fprintf(stderr, "Error: failed to write plain file contents\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 }
@@ -203,9 +221,10 @@ void decrypt_file(const char* cipher_path, const char* plain_dir, aes_key_t key,
 	fclose(cipher_file_ptr);
 	if (file_alg != key.alg) {
 		fprintf(stderr,
-		        "Error: Key and file different algorithm types\n key type %s and file type %s",
+		        "Error: Key and file different algorithm types\n key type %s and file type %s\n",
 		        magics[key.alg],
 		        magics[file_alg]);
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 	decrypt_states_CBC(state_arr, init_vec, key);
@@ -215,6 +234,7 @@ void decrypt_file(const char* cipher_path, const char* plain_dir, aes_key_t key,
 		fprintf(stderr,
 		        "Error: invalid padding byte (%zu) after decryption\n",
 		        state_arr.num_padding_bytes);
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 	byte_arr_t byte_arr = state_arr_to_byte_arr(state_arr);

@@ -1,4 +1,21 @@
-CC = gcc
+ifeq ($(OS),Windows_NT)
+    # Native Windows build
+    CC = gcc
+    LDFLAGS = -lbcrypt
+    EXE_EXT = .exe
+else
+    # Check if cross-compiling for Windows from Linux
+    ifdef CROSS_COMPILE_WIN
+        CC = x86_64-w64-mingw32-gcc
+        LDFLAGS = -lbcrypt
+        EXE_EXT = .exe
+    else
+        # Native Linux build
+        CC = gcc
+        LDFLAGS =
+        EXE_EXT =
+    endif
+endif
 
 CFLAGS  = -std=c99
 CFLAGS += -I.
@@ -19,6 +36,8 @@ CFLAGS += -I$(ROOT_DIR)/test-framework
 
 export CC
 export CFLAGS
+export LDFLAGS
+export EXE_EXT
 export ROOT_DIR
 export BUILD_DIR
 export TEST_DIR
@@ -68,4 +87,19 @@ test_key_gen: libs
 	$(MAKE) -C test-code test_key_gen
 
 install:
+ifeq ($(OS),Windows_NT)
+	@echo "Installing joeyaes.exe to C:\Windows\System32"
+	@copy /Y build\joeyaes.exe C:\Windows\System32\joeyaes.exe
+else
+	@echo "Installing joeyaes to /usr/local/bin"
 	install -m 755 build/joeyaes /usr/local/bin/joeyaes
+endif
+
+uninstall:
+ifeq ($(OS),Windows_NT)
+	@echo "Removing joeyaes.exe from C:\Windows\System32"
+	@del C:\Windows\System32\joeyaes.exe
+else
+	@echo "Removing joeyaes from /usr/local/bin"
+	rm -f /usr/local/bin/joeyaes
+endif

@@ -1,7 +1,13 @@
 #include "utils.h"
 #include <stdlib.h>
 #include <time.h>
-#include <sys/stat.h>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <sys/stat.h>
+#endif
+
+bool is_cli_mode = false;
 
 void buffer_to_state(state_t* state, byte_t* buffer)
 {

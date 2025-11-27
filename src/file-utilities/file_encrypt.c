@@ -1,5 +1,11 @@
 #include "utils.h"
-#include <sys/stat.h>
+#ifdef _WIN32
+    #include <windows.h>
+    #include <bcrypt.h>
+    #pragma comment(lib, "bcrypt.lib")
+#else
+    #include <sys/stat.h>
+#endif
 #include <errno.h>
 
 // magic numbers for ciper .jwy files
@@ -12,6 +18,7 @@ long find_file_size(FILE* file_ptr)
 
 	if (file_size < 0) {
 		fprintf(stderr, "Error: File size not known\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 	return file_size;
@@ -24,6 +31,7 @@ FILE* open_file(const char* path)
 
 	if (file_ptr == NULL) {
 		fprintf(stderr, "Error: Opening file failed ('%s'): %s\n", path, strerror(errno));
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 	return file_ptr;
@@ -31,7 +39,15 @@ FILE* open_file(const char* path)
 
 const char* get_file_name(const char* path)
 {
+#ifdef _WIN32
+	const char* slash_ptr = strrchr(path, '\\');
+	const char* fwd_slash = strrchr(path, '/');
+	if (fwd_slash && (!slash_ptr || fwd_slash > slash_ptr)) {
+		slash_ptr = fwd_slash;
+	}
+#else
 	const char* slash_ptr = strrchr(path, '/');
+#endif
 	return (slash_ptr == NULL) ? path : (slash_ptr + 1);
 }
 
@@ -49,6 +65,7 @@ byte_arr_t plain_file_to_byte_arr(FILE* file_ptr, const char* plain_file_name)
 
 	if (byte_arr.bytes == NULL) {
 		fprintf(stderr, "Error: Memory allocation for byte_arr.bytes failed\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -62,6 +79,7 @@ byte_arr_t plain_file_to_byte_arr(FILE* file_ptr, const char* plain_file_name)
 	if (fread(byte_arr.bytes + 1 + name_len, sizeof(byte_t), file_size, file_ptr) !=
 	    (size_t)file_size) {
 		fprintf(stderr, "Error: failed to read file contents into byte_arr\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -80,6 +98,7 @@ state_arr_t byte_arr_to_state_arr(byte_arr_t byte_arr)
 
 	if (state_arr.states == NULL) {
 		fprintf(stderr, "Error: Memory allocation for state_arr failed\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -115,6 +134,7 @@ void write_cipher_file(FILE* file_ptr,
 	int name_len = (int)strlen(cipher_file_name);
 	if (name_len > 255) {
 		fprintf(stderr, "Error: Name too long\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 	fwrite(&name_len, sizeof(byte_t), 1, file_ptr);
@@ -133,9 +153,23 @@ void write_cipher_file(FILE* file_ptr,
 state_t gen_iv(void)
 {
 	byte_t buffer[16];
+#ifdef _WIN32
+	NTSTATUS status = BCryptGenRandom(NULL, buffer, 16, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+	if (!BCRYPT_SUCCESS(status)) {
+		fprintf(stderr, "Error: Failed to generate random bytes\n");
+		SUGGEST_HELP_IF_CLI();
+		exit(EXIT_FAILURE);
+	}
+#else
 	FILE* urandom_ptr = fopen("/dev/urandom", "rb");
+	if (urandom_ptr == NULL) {
+		fprintf(stderr, "Error: Failed to open /dev/urandom\n");
+		SUGGEST_HELP_IF_CLI();
+		exit(EXIT_FAILURE);
+	}
 	fread(buffer, 1, 16, urandom_ptr);
 	fclose(urandom_ptr);
+#endif
 	state_t init_vector;
 	buffer_to_state(&init_vector, buffer);
 	return init_vector;
@@ -158,11 +192,21 @@ void encrypt_states_CBC(state_arr_t state_arr, state_t init_vector, aes_key_t ke
 
 FILE* build_cipher_file_ptr(const char* dir, const char* name, char* outpath)
 {
+#ifndef _WIN32
 	struct stat st;
 	if (!(stat(dir, &st) == 0 && S_ISDIR(st.st_mode))) {
 		fprintf(stderr, "Error: Invalid cipher directory \'%s\'\n", dir);
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
+#else
+	DWORD attrib = GetFileAttributesA(dir);
+	if (attrib == INVALID_FILE_ATTRIBUTES || !(attrib & FILE_ATTRIBUTE_DIRECTORY)) {
+		fprintf(stderr, "Error: Invalid cipher directory \'%s\'\n", dir);
+		SUGGEST_HELP_IF_CLI();
+		exit(EXIT_FAILURE);
+	}
+#endif
 
 	// generate cipher file path
 	size_t path_len = strlen(dir) + strlen(name) + strlen(".jwy") + 2; // 2 for '/' + '\0'
@@ -181,6 +225,7 @@ FILE* build_cipher_file_ptr(const char* dir, const char* name, char* outpath)
 	strcpy(outpath, path);
 	if (file_ptr == NULL) {
 		fprintf(stderr, "Error: Cipherfile creation failed\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 	return file_ptr;

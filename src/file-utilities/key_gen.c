@@ -2,12 +2,17 @@
 #include "aes.h"
 #include <stdio.h>
 #include <string.h>
-#include <sys/stat.h>
+#ifdef _WIN32
+    #include <windows.h>
+    #include <bcrypt.h>
+    #pragma comment(lib, "bcrypt.lib")
+#else
+    #include <sys/stat.h>
+#endif
 
 static int key_lengths[] = {4, 6, 8};
 static const char* key_magics[] = {"JKEY128", "JKEY192", "JKEY256"};
 
-// tested inside test_key_expansion.c
 aes_key_t create_random_key(alg_t alg)
 {
 	printf("D");
@@ -19,13 +24,27 @@ aes_key_t create_random_key(alg_t alg)
 		exit(EXIT_FAILURE);
 	}
 
+#ifdef _WIN32
+	NTSTATUS status = BCryptGenRandom(NULL, (PUCHAR)key.words, 
+	                                   key.num_key_words * sizeof(word_t), 
+	                                   BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+	if (!BCRYPT_SUCCESS(status)) {
+		fprintf(stderr, "Error: Failed to generate random key\n");
+		free(key.words);
+		exit(EXIT_FAILURE);
+	}
+#else
 	FILE* urandom_ptr = fopen("/dev/urandom", "rb");
-
+	if (urandom_ptr == NULL) {
+		fprintf(stderr, "Error: Failed to open /dev/urandom\n");
+		free(key.words);
+		exit(EXIT_FAILURE);
+	}
 	fread(key.words, sizeof(word_t), key.num_key_words, urandom_ptr);
+	fclose(urandom_ptr);
+#endif
 
 	key.alg = alg;
-
-	fclose(urandom_ptr);
 	return key;
 }
 
@@ -35,7 +54,8 @@ aes_key_t create_key_from_file(char* key_path)
 	aes_key_t key;
 
 	if (file_ptr == NULL) {
-		fprintf(stderr, "Error: Key file not accessible\n");
+		fprintf(stderr, "Error: Key file not accessible: '%s'\n", key_path);
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -54,6 +74,7 @@ aes_key_t create_key_from_file(char* key_path)
 		key.alg = AES256;
 	} else {
 		fprintf(stderr, "Error: Key file magic invalid\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -61,6 +82,7 @@ aes_key_t create_key_from_file(char* key_path)
 
 	if (key.num_key_words == 0 || key.num_key_words > 8) {
 		fprintf(stderr, "Error: Invalid key size in file\n");
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
 
@@ -83,11 +105,21 @@ void write_key_file(FILE* file_ptr, aes_key_t key)
 
 FILE* build_key_file_ptr(const char* dir, const char* name, char* outpath)
 {
+#ifndef _WIN32
 	struct stat st;
 	if (!(stat(dir, &st) == 0 && S_ISDIR(st.st_mode))) {
 		fprintf(stderr, "Error: Invalid key directory \'%s\'\n", dir);
+		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
+#else
+	DWORD attrib = GetFileAttributesA(dir);
+	if (attrib == INVALID_FILE_ATTRIBUTES || !(attrib & FILE_ATTRIBUTE_DIRECTORY)) {
+		fprintf(stderr, "Error: Invalid key directory \'%s\'\n", dir);
+		SUGGEST_HELP_IF_CLI();
+		exit(EXIT_FAILURE);
+	}
+#endif
 
 	size_t path_len = strlen(dir) + strlen(name) + strlen(".jky") + 2; // 2 for '/' + '\0'
 	char path[path_len];

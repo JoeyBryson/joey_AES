@@ -5,11 +5,20 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "aes.h"
 
 #define MAX_NAME_LEN 255
 
+#define SUGGEST_HELP_IF_CLI() \
+	do { \
+		if (is_cli_mode) { \
+			fprintf(stderr, "Run 'joeyaes help' for usage information.\n"); \
+		} \
+	} while(0)
+
 extern const char* magics[];
+extern bool is_cli_mode;
 
 typedef struct {
 	byte_t* bytes;

@@ -1,12 +1,11 @@
 #include "aes.h"
-#define OPENSSL_SUPPRESS_DEPRECATED
-#include <openssl/aes.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <time.h>
+#include <string.h>
 #include "unity.h"
+#include "gen-test-vectors/test_vectors.h"
 
 // test file for the functions in key_expansion.c
 
@@ -37,38 +36,22 @@ void test_add_words(void)
 	}
 }
 
-// compares my key expansion with common cryptographic library openssl
-void compare_with_openssl(aes_key_t key, round_keys_t rk)
+// compares my key expansion with hardcoded test vectors
+void compare_with_expected(round_keys_t rk, uint8_t* expected_bytes, int expected_size)
 {
-	int Nk = key.num_key_words;
-	int Nr = Nk + 6;
-	int total_words = 4 * (Nr + 1);
-
-	uint8_t flat_key[32] = {0}; // max 256-bit key
-	for (int i = 0; i < Nk; i++)
-		for (int j = 0; j < 4; j++)
-			flat_key[i * 4 + j] = key.words[i].byte[j];
-
-	AES_KEY enc_key;
-	AES_set_encrypt_key(flat_key, Nk * 32, &enc_key);
-
+	int total_words = expected_size / 4;
+	
 	for (int i = 0; i < total_words; i++) {
-		unsigned int openssl_word = enc_key.rd_key[i];
-		uint8_t bytes[4] = {openssl_word & 0xFF,
-		                    (openssl_word >> 8) & 0xFF,
-		                    (openssl_word >> 16) & 0xFF,
-		                    (openssl_word >> 24) & 0xFF};
-
 		for (int j = 0; j < 4; j++) {
-			TEST_ASSERT_EQUAL_HEX8_MESSAGE(bytes[j],
+			TEST_ASSERT_EQUAL_HEX8_MESSAGE(expected_bytes[i * 4 + j],
 			                               rk.words[i].byte[j],
-			                               "AES key expansion mismatch with OpenSSL");
+			                               "AES key expansion mismatch with expected");
 		}
 	}
 }
 
-// create key(optionally randomize)
-aes_key_t make_test_key(int num_key_words, int randomize)
+// create key from byte array
+aes_key_t make_key_from_bytes(uint8_t* key_bytes, int num_key_words)
 {
 	aes_key_t key;
 	key.num_key_words = num_key_words;
@@ -76,50 +59,58 @@ aes_key_t make_test_key(int num_key_words, int randomize)
 
 	for (int i = 0; i < num_key_words; i++) {
 		for (int j = 0; j < 4; j++) {
-			if (randomize)
-				key.words[i].byte[j] = rand() % 256;
-			else
-				key.words[i].byte[j] = i * 4 + j;
+			key.words[i].byte[j] = key_bytes[i * 4 + j];
 		}
 	}
 	return key;
 }
 
-// Test AES key expansion for a given Nk
-void run_expand_key_test(int num_key_words, int randomize)
+// Test AES key expansion against hardcoded test vectors
+void test_expand_key_128(void)
 {
-	aes_key_t key = make_test_key(num_key_words, randomize);
+	// Test with sequential key
+	aes_key_t key = make_key_from_bytes(aes128_sequential_key, 4);
 	round_keys_t rk = expand_key(key);
-	compare_with_openssl(key, rk);
+	compare_with_expected(rk, aes128_sequential_expected, sizeof(aes128_sequential_expected));
+	free(key.words);
+	free(rk.words);
+
+	// Test with known NIST test vector
+	key = make_key_from_bytes(aes128_known_key, 4);
+	rk = expand_key(key);
+	compare_with_expected(rk, aes128_known_expected, sizeof(aes128_known_expected));
 	free(key.words);
 	free(rk.words);
 }
 
-// Wrapper unit tests for AES-128/192/256 key expansion
-void test_expand_key_128(void)
-{
-	run_expand_key_test(4, 0); // sequential key
-	run_expand_key_test(4, 1); // random key #1
-	run_expand_key_test(4, 1); // random key #2
-}
-
 void test_expand_key_192(void)
 {
-	run_expand_key_test(6, 0);
-	run_expand_key_test(6, 1);
-	run_expand_key_test(6, 1);
+	aes_key_t key = make_key_from_bytes(aes192_sequential_key, 6);
+	round_keys_t rk = expand_key(key);
+	compare_with_expected(rk, aes192_sequential_expected, sizeof(aes192_sequential_expected));
+	free(key.words);
+	free(rk.words);
 }
 
 void test_expand_key_256(void)
 {
-	run_expand_key_test(8, 0);
-	run_expand_key_test(8, 1);
-	run_expand_key_test(8, 1);
+	// Test with sequential key
+	aes_key_t key = make_key_from_bytes(aes256_sequential_key, 8);
+	round_keys_t rk = expand_key(key);
+	compare_with_expected(rk, aes256_sequential_expected, sizeof(aes256_sequential_expected));
+	free(key.words);
+	free(rk.words);
+
+	// Test with known NIST test vector
+	key = make_key_from_bytes(aes256_known_key, 8);
+	rk = expand_key(key);
+	compare_with_expected(rk, aes256_known_expected, sizeof(aes256_known_expected));
+	free(key.words);
+	free(rk.words);
 }
 
 int main(void)
 {
-	srand((unsigned int)time(NULL)); // Seed RNG for random keys
 	UNITY_BEGIN();
 	init_Sbox();
 

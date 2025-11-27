@@ -15,6 +15,16 @@ USEFULL_FUNC_SRC = $(TEST_DIR)/useful_functions.c
 
 SRCS = $(UNITY_SRC) $(USEFULL_FUNC_SRC)
 
+# EXE_EXT is set by root makefile for Windows builds
+EXE_EXT ?=
+
+# For Windows cross-compilation, use Wine to run executables
+ifeq ($(EXE_EXT),.exe)
+	RUN_PREFIX = wine
+else
+	RUN_PREFIX =
+endif
+
 
 .PHONY: all test clean test_Sbox_gen test_key_expansion test_aes_functions test_cipher test_inv_cipher test_file_utils
 
@@ -22,52 +32,52 @@ all: test_Sbox_gen test_key_expansion test_aes_functions test_cipher test_inv_ci
 test: all
 
 
-test_Sbox_gen: $(TEST_BUILD_DIR)/test_Sbox_gen
-	$(TEST_BUILD_DIR)/test_Sbox_gen
+test_Sbox_gen: $(TEST_BUILD_DIR)/test_Sbox_gen$(EXE_EXT)
+	$(RUN_PREFIX) $(TEST_BUILD_DIR)/test_Sbox_gen$(EXE_EXT)
 
-$(TEST_BUILD_DIR)/test_Sbox_gen: test_Sbox_gen.c $(LIB_CORE)
+$(TEST_BUILD_DIR)/test_Sbox_gen$(EXE_EXT): test_Sbox_gen.c $(LIB_CORE)
 	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_CORE)
 
 
-test_key_expansion: $(TEST_BUILD_DIR)/test_key_expansion
-	$(TEST_BUILD_DIR)/test_key_expansion
+test_key_expansion: $(TEST_BUILD_DIR)/test_key_expansion$(EXE_EXT)
+	$(RUN_PREFIX) $(TEST_BUILD_DIR)/test_key_expansion$(EXE_EXT)
 
-$(TEST_BUILD_DIR)/test_key_expansion: test_key_expansion.c $(LIB_CORE)
-	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_CORE) $(CRYPTO_LIBS)
-
-
-test_aes_functions: $(TEST_BUILD_DIR)/test_aes_functions
-	$(TEST_BUILD_DIR)/test_aes_functions
-
-$(TEST_BUILD_DIR)/test_aes_functions: test_aes_functions.c $(LIB_CORE)
+$(TEST_BUILD_DIR)/test_key_expansion$(EXE_EXT): test_key_expansion.c $(LIB_CORE)
 	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_CORE)
 
 
-test_cipher: $(TEST_BUILD_DIR)/test_cipher
-	$(TEST_BUILD_DIR)/test_cipher
+test_aes_functions: $(TEST_BUILD_DIR)/test_aes_functions$(EXE_EXT)
+	$(RUN_PREFIX) $(TEST_BUILD_DIR)/test_aes_functions$(EXE_EXT)
 
-$(TEST_BUILD_DIR)/test_cipher: test_cipher.c $(LIB_CORE)
+$(TEST_BUILD_DIR)/test_aes_functions$(EXE_EXT): test_aes_functions.c $(LIB_CORE)
 	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_CORE)
 
 
-test_inv_cipher: $(TEST_BUILD_DIR)/test_inv_cipher
-	$(TEST_BUILD_DIR)/test_inv_cipher
+test_cipher: $(TEST_BUILD_DIR)/test_cipher$(EXE_EXT)
+	$(RUN_PREFIX) $(TEST_BUILD_DIR)/test_cipher$(EXE_EXT)
 
-$(TEST_BUILD_DIR)/test_inv_cipher: test_inv_cipher.c $(LIB_CORE)
+$(TEST_BUILD_DIR)/test_cipher$(EXE_EXT): test_cipher.c $(LIB_CORE)
 	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_CORE)
 
 
-test_file_utils: $(TEST_BUILD_DIR)/test_file_utils
-	$(TEST_BUILD_DIR)/test_file_utils
+test_inv_cipher: $(TEST_BUILD_DIR)/test_inv_cipher$(EXE_EXT)
+	$(RUN_PREFIX) $(TEST_BUILD_DIR)/test_inv_cipher$(EXE_EXT)
 
-$(TEST_BUILD_DIR)/test_file_utils: test_file_utils.c $(LIB_UTIL) $(LIB_CORE)
-	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_UTIL) $(LIB_CORE)
+$(TEST_BUILD_DIR)/test_inv_cipher$(EXE_EXT): test_inv_cipher.c $(LIB_CORE)
+	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_CORE)
 
-test_key_gen: $(TEST_BUILD_DIR)/test_key_gen
-	$(TEST_BUILD_DIR)/test_key_gen
 
-$(TEST_BUILD_DIR)/test_key_gen: test_key_gen.c $(LIB_UTIL) $(LIB_CORE)
-	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_UTIL) $(LIB_CORE)
+test_file_utils: $(TEST_BUILD_DIR)/test_file_utils$(EXE_EXT)
+	$(RUN_PREFIX) $(TEST_BUILD_DIR)/test_file_utils$(EXE_EXT)
+
+$(TEST_BUILD_DIR)/test_file_utils$(EXE_EXT): test_file_utils.c $(LIB_UTIL) $(LIB_CORE)
+	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_UTIL) $(LIB_CORE) $(LDFLAGS)
+
+test_key_gen: $(TEST_BUILD_DIR)/test_key_gen$(EXE_EXT)
+	$(RUN_PREFIX) $(TEST_BUILD_DIR)/test_key_gen$(EXE_EXT)
+
+$(TEST_BUILD_DIR)/test_key_gen$(EXE_EXT): test_key_gen.c $(LIB_UTIL) $(LIB_CORE)
+	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_UTIL) $(LIB_CORE) $(LDFLAGS)
 
 clean:
 	rm -f $(TEST_BUILD_DIR)/*

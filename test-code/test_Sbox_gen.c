@@ -1,6 +1,4 @@
 #include "aes.h"
-#define OPENSSL_SUPPRESS_DEPRECATED
-#include <openssl/aes.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>

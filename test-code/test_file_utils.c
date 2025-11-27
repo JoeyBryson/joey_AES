@@ -5,8 +5,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <sys/types.h>
+    #include <sys/stat.h>
+#endif
 
 void setUp(void) {}
 void tearDown(void) {}
