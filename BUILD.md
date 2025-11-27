@@ -1,6 +1,6 @@
 # Build Instructions
 
-This document explains how to build, test, and install the JoeyAES project on Linux and Windows.
+This document explains how to build, test, and install the JoeyAES project on Linux, how to cross-compile for Windows from Linux, and how to build natively on Windows from a plain Command Prompt.
 
 ## Prerequisites
 
@@ -11,9 +11,9 @@ This document explains how to build, test, and install the JoeyAES project on Li
 - (Optional) Wine for testing Windows executables on Linux
 
 ### Windows
-- GCC compiler (via MinGW-w64 or MSYS2)
-- GNU Make
-- Windows SDK (bcrypt.lib for cryptographic functions)
+- GCC + Make via MinGW-w64 (MSYS2 or WinLibs)
+- Git (optional; you can also download a ZIP)
+- Administrator privileges for install/uninstall
 
 ---
 
@@ -103,35 +103,112 @@ CROSS_COMPILE_WIN=1 make clean
 
 ---
 
-## Native Windows Build
+## Windows Quickstart (native CMD, no prerequisites)
 
-### Build the application
+These steps start from a plain Windows Command Prompt (CMD). Choose A (winget + MSYS2) or B (manual WinLibs). If running install/uninstall, open an elevated CMD (Run as Administrator).
+
+### A) Using winget + MSYS2 (recommended)
+
+1) Install tools
 ```cmd
+winget install -e --id Git.Git
+winget install -e --id MSYS2.MSYS2
+```
+
+2) In the MSYS2 MinGW64 shell (launch from Start Menu → MSYS2 MinGW64), install the MinGW toolchain:
+```bash
+pacman -Sy --noconfirm
+pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-make
+```
+
+3) Back in CMD, add MinGW to PATH (adjust if MSYS2 installed elsewhere):
+```cmd
+setx PATH "%PATH%;C:\msys64\mingw64\bin"
+```
+
+4) Optional: alias mingw32-make as make (some setups only ship mingw32-make.exe)
+```cmd
+copy C:\msys64\mingw64\bin\mingw32-make.exe C:\msys64\mingw64\bin\make.exe
+```
+
+5) Get the source
+```cmd
+git clone https://github.com/JoeyBryson/joey_AES.git
+cd joey_AES
+```
+Alternatively (without Git):
+```cmd
+curl -L -o joey_AES.zip https://github.com/JoeyBryson/joey_AES/archive/refs/heads/main.zip
+tar -xf joey_AES.zip
+cd joey_AES-main
+```
+
+6) Build
+```cmd
+make clean
 make
 ```
-Creates `build\joeyaes.exe`.
+Output: `build\joeyaes.exe`
 
-### Run tests
+7) Run tests
 ```cmd
 make test
 ```
 
-### Install system-wide (requires Administrator)
+8) Install (Administrator)
 ```cmd
 make install
 ```
-Installs `joeyaes.exe` to `C:\Windows\System32\`.
+Installs to `C:\Windows\System32\joeyaes.exe`.
 
-### Uninstall
+9) Uninstall (Administrator)
 ```cmd
 make uninstall
 ```
-Removes `joeyaes.exe` from `C:\Windows\System32\`.
 
-### Clean build
+### B) Manual toolchain (WinLibs, no winget)
+
+1) Download and extract MinGW-w64 (WinLibs)
+```cmd
+mkdir C:\Tools
+curl -L -o C:\Tools\winlibs.zip https://github.com/brechtsanders/winlibs_mingw/releases/latest/download/winlibs-x86_64-posix-seh-gcc.zip
+tar -xf C:\Tools\winlibs.zip -C C:\Tools
+```
+Assuming it extracted to `C:\Tools\winlibs\mingw64` (adjust if different), add to PATH:
+```cmd
+setx PATH "%PATH%;C:\Tools\winlibs\mingw64\bin"
+```
+
+If only `mingw32-make.exe` exists, alias it to `make.exe`:
+```cmd
+copy C:\Tools\winlibs\mingw64\bin\mingw32-make.exe C:\Tools\winlibs\mingw64\bin\make.exe
+```
+
+2) Get the source
+```cmd
+git clone https://github.com/JoeyBryson/joey_AES.git
+cd joey_AES
+```
+Or download ZIP if Git isn’t available:
+```cmd
+curl -L -o joey_AES.zip https://github.com/JoeyBryson/joey_AES/archive/refs/heads/main.zip
+tar -xf joey_AES.zip
+cd joey_AES-main
+```
+
+3) Build, test, install (same as above)
 ```cmd
 make clean
+make
+make test
 ```
+For install/uninstall, run CMD as Administrator:
+```cmd
+make install
+make uninstall
+```
+
+Tip: If `make` isn’t found, confirm your PATH and the `make.exe` copy step above.
 
 ---
 
@@ -218,3 +295,10 @@ joeyaes help              # Now available system-wide
 ### Link errors with bcrypt
 - **Windows**: Ensure Windows SDK is installed
 - **Cross-compile**: MinGW should include bcrypt.lib by default
+
+### CROSS_COMPILE_WIN usage (common mistake)
+To cross-compile from Linux, set the environment variable before `make`, e.g.:
+```bash
+CROSS_COMPILE_WIN=1 make clean && CROSS_COMPILE_WIN=1 make
+```
+Do not pass it as an option after make (e.g. `make --CROSS_COMPILE_WIN` will fail).
