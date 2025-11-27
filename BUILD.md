@@ -1,61 +1,192 @@
 # Build Instructions
 
-This project supports building natively on both Linux and Windows, as well as cross-compiling from Linux to Windows.
+This document explains how to build, test, and install the JoeyAES project on Linux and Windows.
 
-## Building on Linux
+## Prerequisites
 
-### Prerequisites
-- GCC compiler
+### Linux
+- GCC compiler (`gcc`)
+- GNU Make (`make`)
+- (Optional) MinGW cross-compiler for Windows builds: `x86_64-w64-mingw32-gcc`
+- (Optional) Wine for testing Windows executables on Linux
+
+### Windows
+- GCC compiler (via MinGW-w64 or MSYS2)
 - GNU Make
+- Windows SDK (bcrypt.lib for cryptographic functions)
 
-### Build
+---
+
+## Linux Build
+
+### Basic Commands
+
+#### Build the CLI application
 ```bash
 make
+# or
+make cli
+```
+Creates the `joeyaes` executable in `build/joeyaes`.
+
+#### Build libraries only
+```bash
+make libs
+```
+Builds the static libraries without creating the CLI binary:
+- `build/libcore.a` - Core AES encryption functions
+- `build/libfileutils.a` - File utilities and key generation
+
+#### Run all tests
+```bash
+make test
+```
+Runs the complete test suite (26 tests total).
+
+#### Run individual test suites
+```bash
+make test_Sbox_gen          # Test S-box generation (5 tests)
+make test_key_expansion     # Test AES key expansion (5 tests)
+make test_aes_functions     # Test AES primitives (4 tests)
+make test_cipher            # Test encryption (3 tests)
+make test_inv_cipher        # Test decryption (3 tests)
+make test_file_utils        # Test file operations (6 tests)
+make test_key_gen           # Test key generation
 ```
 
-The binary will be created at `build/joeyaes`
-
-### Clean
+#### Clean build artifacts
 ```bash
 make clean
 ```
+Removes all object files, libraries, executables, and test binaries.
 
-## Cross-Compiling for Windows (from Linux)
+#### Install system-wide (requires sudo)
+```bash
+sudo make install
+```
+Installs `joeyaes` to `/usr/local/bin/joeyaes`.
+
+#### Uninstall
+```bash
+sudo make uninstall
+```
+Removes `joeyaes` from `/usr/local/bin/`.
+
+---
+
+## Windows Cross-Compilation (from Linux)
+
+Build Windows executables on Linux using the MinGW cross-compiler.
 
 ### Prerequisites
-- MinGW-w64 cross-compiler
-- GNU Make
-
-Install on Ubuntu/Debian:
 ```bash
-sudo apt install mingw-w64
+sudo apt install mingw-w64 wine
 ```
 
-### Build
+### Build for Windows
 ```bash
+CROSS_COMPILE_WIN=1 make clean
 CROSS_COMPILE_WIN=1 make
 ```
+Creates `build/joeyaes.exe`.
 
-The Windows executable will be created at `build/joeyaes.exe`
-
-### Clean
+### Test Windows build on Linux (using Wine)
 ```bash
+CROSS_COMPILE_WIN=1 make test
+```
+Tests run through Wine automatically. Wine display errors can be ignored.
+
+### Clean Windows build
+```bash
+CROSS_COMPILE_WIN=1 make clean
+```
+
+---
+
+## Native Windows Build
+
+### Build the application
+```cmd
+make
+```
+Creates `build\joeyaes.exe`.
+
+### Run tests
+```cmd
+make test
+```
+
+### Install system-wide (requires Administrator)
+```cmd
+make install
+```
+Installs `joeyaes.exe` to `C:\Windows\System32\`.
+
+### Uninstall
+```cmd
+make uninstall
+```
+Removes `joeyaes.exe` from `C:\Windows\System32\`.
+
+### Clean build
+```cmd
 make clean
 ```
 
-## Building on Windows
+---
 
-### Prerequisites
-- MinGW-w64 (via MSYS2 or MinGW-w64 installer)
-- GNU Make
+## Common Build Workflows
 
-### Build
-Open a MinGW terminal and run:
+### Development workflow (Linux)
 ```bash
-make
+# Edit source files...
+make clean && make        # Rebuild
+make test                 # Run tests
+./build/joeyaes help      # Test CLI locally
 ```
 
-The binary will be created at `build/joeyaes.exe`
+### Full test workflow (Linux → Windows cross-compile)
+```bash
+# Test on native Linux
+make clean && make test
+
+# Cross-compile and test for Windows
+CROSS_COMPILE_WIN=1 make clean && CROSS_COMPILE_WIN=1 make test
+```
+
+### Install for system-wide use (Linux)
+```bash
+make clean
+make
+sudo make install
+joeyaes help              # Now available system-wide
+```
+
+---
+
+## Build Targets Summary
+
+| Target | Description |
+|--------|-------------|
+| `make` or `make all` | Build the CLI application (default) |
+| `make cli` | Build the CLI application |
+| `make libs` | Build static libraries only |
+| `make test` | Run all test suites (26 tests) |
+| `make test_<name>` | Run specific test suite |
+| `make clean` | Remove all build artifacts |
+| `make install` | Install system-wide (requires elevated privileges) |
+| `make uninstall` | Remove system-wide installation |
+
+---
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `CROSS_COMPILE_WIN=1` | Enable Windows cross-compilation from Linux |
+| `OS=Windows_NT` | Automatically set on native Windows builds |
+
+---
 
 ## Platform-Specific Notes
 
@@ -67,11 +198,23 @@ The binary will be created at `build/joeyaes.exe`
 - Uses `/dev/urandom` for cryptographic random number generation
 - Address Sanitizer is enabled by default for debugging
 
-## Testing Cross-Compiled Windows Executable on Linux
+---
 
-You can test the Windows executable using Wine:
-```bash
-wine build/joeyaes.exe
-```
+## Troubleshooting
 
-Note: Wine may not fully support all Windows APIs, so testing on a real Windows system is recommended.
+### "command not found" errors
+- **Linux**: Ensure `gcc` and `make` are installed
+- **Windows cross-compile**: Install `mingw-w64` package
+- **Wine testing**: Install `wine` package
+
+### Permission denied on install
+- **Linux**: Use `sudo make install`
+- **Windows**: Run as Administrator
+
+### Tests fail on Windows cross-compile
+- Ensure Wine is installed and configured
+- Wine display errors can be ignored (tests will still pass)
+
+### Link errors with bcrypt
+- **Windows**: Ensure Windows SDK is installed
+- **Cross-compile**: MinGW should include bcrypt.lib by default
