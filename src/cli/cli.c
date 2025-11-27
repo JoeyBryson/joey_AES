@@ -1,13 +1,93 @@
-#include cli.h
+#include "cli.h"
+#include "utils.h"
+#include "aes.h"
 
+static const char* alg_str[] = {"128", "192", "256"};
 
-
-void welcome()
+int cmd_encrypt(int argc, char** argv)
 {
-  printf("Welcome to the Joey-AES file encryption command line interface")
+	if (argc != 4) {
+		fprintf(stderr, "Error: Invalid number of arguments for 'encrypt' \n");
+		exit(EXIT_FAILURE);
+	}
+
+	char* plain_path = argv[0];
+	char* cipher_dir = argv[1];
+	char* cipher_name = argv[2];
+	char* key_path = argv[3];
+	aes_key_t key = create_key_from_file(key_path);
+	char outpath[MAX_NAME_LEN];
+	encrypt_file(plain_path, cipher_dir, cipher_name, key, outpath);
+	free(key.words);
+	printf("cipher file %s created", outpath);
+	return 1;
 }
 
-int main()
+int cmd_decrypt(int argc, char** argv)
+{
+	if (argc != 3) {
+		fprintf(stderr, "Error: Invalid number of arguments for 'decrypt' \n");
+		exit(EXIT_FAILURE);
+	}
+
+	char* cipher_path = argv[0];
+	char* plain_dir = argv[1];
+	char* key_path = argv[2];
+	aes_key_t key = create_key_from_file(key_path);
+	char outpath[MAX_NAME_LEN];
+	decrypt_file(cipher_path, plain_dir, key, outpath);
+	free(key.words);
+	printf("file %s created", outpath);
+	return 1;
+}
+int cmd_genkey(int argc, char** argv)
+{
+	if (argc != 3) {
+		fprintf(stderr, "Error: Invalid number of arguments for 'genkey' \n");
+		exit(EXIT_FAILURE);
+	}
+
+	char* dir = argv[0];
+	char* name = argv[1];
+	char* alg_name = argv[2];
+
+	alg_t alg;
+	if (strcmp(alg_name, alg_str[0]) == 0) {
+		alg = AES128;
+	} else if (strcmp(alg_name, alg_str[1]) == 0) {
+		alg = AES192;
+	} else if (strcmp(alg_name, alg_str[2]) == 0) {
+		alg = AES256;
+	} else {
+		fprintf(stderr, "Error: Invalid argument 'algorithm', must be '128', '192' or '256'\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	char outpath[MAX_NAME_LEN];
+	create_and_save_key(alg, dir, name, outpath);
+	printf("AES%s key %s created", alg_str[alg], outpath);
+	return 1;
+}
+
+int main(int argc, char** argv)
 {
 
+	if (argc < 2) {
+		fprintf(stderr, "Error: Too few arguments\n");
+		exit(EXIT_FAILURE);
+	}
+	const char* cmd = argv[1];
+
+	if (strcmp(cmd, "encrypt") == 0) {
+		return cmd_encrypt(argc - 2, argv + 2);
+	} else if (strcmp(cmd, "decrypt") == 0) {
+		return cmd_decrypt(argc - 2, argv + 2);
+	} else if (strcmp(cmd, "genkey") == 0) {
+		return cmd_genkey(argc - 2, argv + 2);
+	} else {
+		fprintf(stderr, "Error: Invalid command %s\n", cmd);
+		exit(EXIT_FAILURE);
+	}
+
+	return 1;
 }

@@ -1,6 +1,6 @@
 .PHONY: lib clean
 
-UTIL_SRC = file_encrypt.c file_decrypt.c utils.c
+UTIL_SRC = file_encrypt.c file_decrypt.c utils.c key_gen.c
 UTIL_OBJ = $(patsubst %.c, $(BUILD_DIR)/obj_files/%.o, $(UTIL_SRC))
 
 $(BUILD_DIR)/obj_files/%.o: %.c

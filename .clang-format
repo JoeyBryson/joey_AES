@@ -1,0 +1,60 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: ForIndentation
+TabWidth: 4
+
+BreakBeforeBraces: Linux
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+PointerAlignment: Left
+
+IndentCaseLabels: false
+
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: false
+SpaceAroundPointerQualifiers: Default
+
+ColumnLimit: 100
+
+SortIncludes: false
+
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+AllowAllArgumentsOnNextLine: false
+BinPackArguments: false
+BinPackParameters: false
+
+DisableFormat: false
+
+
+# BasedOnStyle: LLVM
+
+# IndentWidth: 4
+# UseTab: Never
+
+# BreakBeforeBraces: Attach
+
+# AllowShortBlocksOnASingleLine: false
+# AllowShortIfStatementsOnASingleLine: false
+# AllowShortLoopsOnASingleLine: false
+
+# PointerAlignment: Right
+
+# IndentCaseLabels: true
+
+# SpaceBeforeParens: ControlStatements
+# SpaceAroundPointerQualifiers: Default
+
+# ColumnLimit: 100
+# SortIncludes: false
+
+# AlignAfterOpenBracket: Align
+# AlignOperands: Align
+# BinPackArguments: true
+# BinPackParameters: true
+
+# AllowAllArgumentsOnNextLine: false
+
+# DisableFormat: false

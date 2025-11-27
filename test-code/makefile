@@ -1,7 +1,7 @@
 CRYPTO_LIBS = -lm -lcrypto
 
-ASANFLAGS  = -fsanitize=address
-ASANFLAGS += -fno-common -fno-omit-frame-pointer
+SAN_FLAGS = -fsanitize=address,undefined,leak -fno-omit-frame-pointer -g
+
 
 CFLAGS += -I.
 
@@ -63,6 +63,11 @@ test_file_utils: $(TEST_BUILD_DIR)/test_file_utils
 $(TEST_BUILD_DIR)/test_file_utils: test_file_utils.c $(LIB_UTIL) $(LIB_CORE)
 	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_UTIL) $(LIB_CORE)
 
+test_key_gen: $(TEST_BUILD_DIR)/test_key_gen
+	$(TEST_BUILD_DIR)/test_key_gen
+
+$(TEST_BUILD_DIR)/test_key_gen: test_key_gen.c $(LIB_UTIL) $(LIB_CORE)
+	$(CC) $(CFLAGS) $(ASANFLAGS) $(SRCS) -o $@ $< $(LIB_UTIL) $(LIB_CORE)
 
 clean:
 	rm -f $(TEST_BUILD_DIR)/*

@@ -35,32 +35,37 @@ all: cli
 cli: 
 	$(MAKE) -C src all
 
-test: $(LIBS)
+test: libs
 	$(MAKE) -C test-code test
 
-libs: $(LIBS)
-
-$(LIBS): 
-	$(MAKE) -C src libs
+libs: 
+	$(MAKE) -C src libs 
+	
 
 clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C test-code clean
 
-test_file_utils: $(LIBS)
+test_file_utils: libs
 	$(MAKE) -C test-code test_file_utils
 
-test_Sbox_gen: $(LIBS)
+test_Sbox_gen: libs
 	$(MAKE) -C test-code test_Sbox_gen
 
-test_key_expansion: $(LIBS)
+test_key_expansion: libs
 	$(MAKE) -C test-code test_key_expansion
  
-test_aes_functions: $(LIBS)
+test_aes_functions: libs
 	$(MAKE) -C test-code test_aes_functions
 
-test_cipher: $(LIBS)
+test_cipher: libs
 	$(MAKE) -C test-code test_cipher
 
-test_inv_cipher: $(LIBS)
+test_inv_cipher: libs
 	$(MAKE) -C test-code test_inv_cipher
+
+test_key_gen: libs
+	$(MAKE) -C test-code test_key_gen
+
+install:
+	install -m 755 build/joeyaes /usr/local/bin/joeyaes
