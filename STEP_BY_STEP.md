@@ -209,6 +209,40 @@ joeyaes help
 ---
 
 ## Troubleshooting
-- `make: command not found` → Ensure your PATH includes the bin folder with `make.exe` and `gcc.exe`. If only `mingw32-make.exe` exists, copy it to `make.exe` as shown above.
-- Cross-compile: set `CROSS_COMPILE_WIN=1` as an environment variable before `make` (don’t use `make --CROSS_COMPILE_WIN`).
-- Install/uninstall requires Administrator (Windows) or sudo (Linux).
+
+### `make: command not found`
+Ensure your PATH includes the bin folder with `make.exe` and `gcc.exe`. If only `mingw32-make.exe` exists, copy it to `make.exe` as shown above.
+
+### Cross-compile CROSS_COMPILE_WIN
+Set `CROSS_COMPILE_WIN=1` as an environment variable before `make` (don't use `make --CROSS_COMPILE_WIN`).
+
+### Windows: Cannot find bcrypt / undefined reference to BCryptGenRandom
+Some MinGW distributions (especially older ones) don't include `bcrypt.lib` or have linking issues. Solutions:
+
+**Option 1: Use a modern MinGW-w64**
+```cmd
+# Uninstall old MinGW and use MSYS2 MinGW64 (recommended)
+winget install -e --id MSYS2.MSYS2
+# Then follow steps 2-4 from section 3A above
+```
+
+**Option 2: Verify bcrypt is available**
+```cmd
+gcc -print-search-dirs
+# Check if bcrypt.lib or libbcrypt.a exists in the library paths
+```
+
+**Option 3: Use WinLibs (usually includes bcrypt)**
+Follow section 3B above - WinLibs typically bundles bcrypt support.
+
+**Option 4: Link directly to system bcrypt.dll**
+If you have Windows SDK installed:
+```cmd
+# Edit root makefile line 4 to:
+LDFLAGS = -lbcrypt -L"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64"
+```
+(Adjust the path to match your Windows SDK version.)
+
+### Install/uninstall requires elevated privileges
+- **Windows**: Run Command Prompt as Administrator
+- **Linux**: Use `sudo make install` / `sudo make uninstall`

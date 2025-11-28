@@ -292,9 +292,40 @@ joeyaes help              # Now available system-wide
 - Ensure Wine is installed and configured
 - Wine display errors can be ignored (tests will still pass)
 
-### Link errors with bcrypt
-- **Windows**: Ensure Windows SDK is installed
-- **Cross-compile**: MinGW should include bcrypt.lib by default
+### Link errors with bcrypt (Windows native builds)
+**Symptoms**: `undefined reference to 'BCryptGenRandom'` or similar linker errors.
+
+**Common causes**:
+- Older MinGW versions don't include bcrypt.lib
+- Library search path doesn't include bcrypt
+
+**Solutions** (try in order):
+1. **Use modern MinGW-w64 via MSYS2** (recommended):
+   ```cmd
+   winget install -e --id MSYS2.MSYS2
+   ```
+   Then install toolchain from MSYS2 MinGW64 shell:
+   ```bash
+   pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-make
+   ```
+
+2. **Use WinLibs** (usually includes bcrypt): Follow manual WinLibs instructions above
+
+3. **Add Windows SDK library path** (if Windows SDK is installed):
+   Edit root `makefile` line 4 to add `-L` flag:
+   ```makefile
+   LDFLAGS = -lbcrypt -L"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64"
+   ```
+   (Adjust path for your SDK version)
+
+4. **Verify bcrypt availability**:
+   ```cmd
+   gcc -print-search-dirs
+   # Check library paths for bcrypt.lib or libbcrypt.a
+   ```
+
+### Cross-compile: MinGW should include bcrypt.lib by default
+Cross-compiling from Linux with `x86_64-w64-mingw32-gcc` typically works without issues.
 
 ### CROSS_COMPILE_WIN usage (common mistake)
 To cross-compile from Linux, set the environment variable before `make`, e.g.:
