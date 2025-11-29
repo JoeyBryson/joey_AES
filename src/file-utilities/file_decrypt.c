@@ -8,6 +8,13 @@
 #endif
 #define MAX_NAME_LEN 255
 
+// Forward declarations
+static void decrypt_states_CBC(state_arr_t state_arr,
+                                state_t init_vector,
+                                aes_key_t key,
+                                progress_callback_t progress_cb,
+                                void* user_data);
+
 state_arr_t
 read_cipher_file_to_states(FILE* file_ptr, alg_t* file_alg, state_t* init_vector, char* cipher_name)
 {
@@ -195,7 +202,11 @@ void rewrite_plain_file_from_byte_arr(FILE* plain_file_ptr, byte_arr_t byte_arr)
 	}
 }
 
-void decrypt_states_CBC(state_arr_t state_arr, state_t init_vector, aes_key_t key)
+static void decrypt_states_CBC(state_arr_t state_arr,
+                                state_t init_vector,
+                                aes_key_t key,
+                                progress_callback_t progress_cb,
+                                void* user_data)
 {
 	init_Sbox();
 	round_keys_t round_keys = expand_key(key);
@@ -206,11 +217,20 @@ void decrypt_states_CBC(state_arr_t state_arr, state_t init_vector, aes_key_t ke
 		state_t plain_state = x_or_states(prev, decrypt_state);
 		prev = state_arr.states[i];
 		state_arr.states[i] = plain_state;
+		
+		if (progress_cb) {
+			progress_cb(i + 1, state_arr.num_states, user_data);
+		}
 	}
 	free(round_keys.words);
 }
 
-void decrypt_file(const char* cipher_path, const char* plain_dir, aes_key_t key, char* outpath)
+void decrypt_file(const char* cipher_path,
+                  const char* plain_dir,
+                  aes_key_t key,
+                  char* outpath,
+                  progress_callback_t progress_cb,
+                  void* user_data)
 {
 	FILE* cipher_file_ptr = fopen(cipher_path, "rb");
 	alg_t file_alg;
@@ -227,7 +247,7 @@ void decrypt_file(const char* cipher_path, const char* plain_dir, aes_key_t key,
 		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
-	decrypt_states_CBC(state_arr, init_vec, key);
+	decrypt_states_CBC(state_arr, init_vec, key, progress_cb, user_data);
 	/* now that states are decrypted, read padding byte from last state */
 	state_arr.num_padding_bytes = state_arr.states[state_arr.num_states - 1].col[3].byte[3];
 	if (state_arr.num_padding_bytes == 0 || state_arr.num_padding_bytes > 16) {

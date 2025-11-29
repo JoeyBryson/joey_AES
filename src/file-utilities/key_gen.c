@@ -5,7 +5,6 @@
 #ifdef _WIN32
     #include <windows.h>
     #include <bcrypt.h>
-    #pragma comment(lib, "bcrypt.lib")
 #else
     #include <sys/stat.h>
 #endif
@@ -15,7 +14,6 @@ static const char* key_magics[] = {"JKEY128", "JKEY192", "JKEY256"};
 
 aes_key_t create_random_key(alg_t alg)
 {
-	printf("D");
 	aes_key_t key;
 	key.num_key_words = key_lengths[alg];
 	key.words = malloc(key.num_key_words * sizeof(word_t));

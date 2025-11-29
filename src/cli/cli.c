@@ -4,6 +4,35 @@
 
 static const char* alg_str[] = {"128", "192", "256"};
 
+#define PROGRESS_BAR_WIDTH 50
+
+void print_progress_bar(size_t current, size_t total, void* user_data)
+{
+	(void)user_data; // unused
+	
+	if (total == 0) return;
+	
+	int percentage = (int)((current * 100) / total);
+	int filled = (int)((current * PROGRESS_BAR_WIDTH) / total);
+	
+	fprintf(stderr, "\r[");
+	for (int i = 0; i < PROGRESS_BAR_WIDTH; i++) {
+		if (i < filled) {
+			fprintf(stderr, "=");
+		} else if (i == filled && current < total) {
+			fprintf(stderr, ">");
+		} else {
+			fprintf(stderr, " ");
+		}
+	}
+	fprintf(stderr, "] %3d%% (%zu/%zu blocks)", percentage, current, total);
+	fflush(stderr);
+	
+	if (current == total) {
+		fprintf(stderr, "\n");
+	}
+}
+
 void print_help(void)
 {
 	printf("Joey AES - AES Encryption Tool\n");
@@ -51,7 +80,10 @@ int cmd_encrypt(int argc, char** argv)
 	char* key_path = argv[3];
 	aes_key_t key = create_key_from_file(key_path);
 	char outpath[MAX_NAME_LEN];
-	encrypt_file(plain_path, cipher_dir, cipher_name, key, outpath);
+	
+	fprintf(stderr, "Encrypting: %s\n", plain_path);
+	encrypt_file(plain_path, cipher_dir, cipher_name, key, outpath, 
+	             print_progress_bar, NULL);
 	free(key.words);
 	printf("✓ Encrypted file created: %s\n", outpath);
 	return 0;
@@ -71,7 +103,10 @@ int cmd_decrypt(int argc, char** argv)
 	char* key_path = argv[2];
 	aes_key_t key = create_key_from_file(key_path);
 	char outpath[MAX_NAME_LEN];
-	decrypt_file(cipher_path, plain_dir, key, outpath);
+	
+	fprintf(stderr, "Decrypting: %s\n", cipher_path);
+	decrypt_file(cipher_path, plain_dir, key, outpath, 
+	             print_progress_bar, NULL);
 	free(key.words);
 	printf("✓ Decrypted file created: %s\n", outpath);
 	return 0;

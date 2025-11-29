@@ -1,7 +1,7 @@
 CRYPTO_LIBS = -lm -lcrypto
 
 SAN_FLAGS = -fsanitize=address,undefined,leak -fno-omit-frame-pointer -g
-
+CFLAGS += -DUNITY_SUPPORT_64 -DUNITY_OUTPUT_COLOR
 
 CFLAGS += -I.
 

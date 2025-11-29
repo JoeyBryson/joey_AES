@@ -24,4 +24,4 @@ $(CLI_BINARY): $(CLI_OBJ) $(LIBS)
 	$(CC) $(CFLAGS) $(ASANFLAGS) $^ -o $@ $(LIBS) $(LDFLAGS)
 
 clean:
-	rm -f $(CLI_OBJ) $(CLI_BINARY)
+	rm -f $(CLI_OBJ) $(CLI_BINARY) $(CLI_BINARY).exe

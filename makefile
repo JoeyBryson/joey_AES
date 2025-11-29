@@ -5,7 +5,8 @@ ifeq ($(OS),Windows_NT)
     EXE_EXT = .exe
 else
     # Check if cross-compiling for Windows from Linux
-    ifdef CROSS_COMPILE_WIN
+    # Support multiple flags: CROSS_COMPILE_WIN=1, win=1, or w=1
+    ifneq ($(filter 1,$(CROSS_COMPILE_WIN) $(win) $(w)),)
         CC = x86_64-w64-mingw32-gcc
         LDFLAGS = -lbcrypt
         EXE_EXT = .exe
@@ -21,7 +22,6 @@ CFLAGS  = -std=c99
 CFLAGS += -I.
 CFLAGS += -g
 CFLAGS += -Wall -Wextra -pedantic
-CFLAGS += -DUNITY_SUPPORT_64 -DUNITY_OUTPUT_COLOR
 
 ROOT_DIR := $(CURDIR)
 BUILD_DIR := $(ROOT_DIR)/build
@@ -54,7 +54,7 @@ all: cli
 cli: 
 	$(MAKE) -C src all
 
-test: libs
+tests: libs
 	$(MAKE) -C test-code test
 
 libs: 
@@ -86,20 +86,12 @@ test_inv_cipher: libs
 test_key_gen: libs
 	$(MAKE) -C test-code test_key_gen
 
+#linux native install/uninstall to add to PATH for easier cli usage
+ifndef $(w)
 install:
-ifeq ($(OS),Windows_NT)
-	@echo "Installing joeyaes.exe to C:\Windows\System32"
-	@copy /Y build\joeyaes.exe C:\Windows\System32\joeyaes.exe
-else
 	@echo "Installing joeyaes to /usr/local/bin"
 	install -m 755 build/joeyaes /usr/local/bin/joeyaes
-endif
-
 uninstall:
-ifeq ($(OS),Windows_NT)
-	@echo "Removing joeyaes.exe from C:\Windows\System32"
-	@del C:\Windows\System32\joeyaes.exe
-else
 	@echo "Removing joeyaes from /usr/local/bin"
 	rm -f /usr/local/bin/joeyaes
 endif

@@ -17,6 +17,9 @@
 		} \
 	} while(0)
 
+    
+typedef void (*progress_callback_t)(size_t current, size_t total, void* user_data);
+
 extern const char* magics[];
 extern bool is_cli_mode;
 
@@ -70,8 +73,16 @@ void encrypt_file(const char* plaintext_path,
                   const char* cipher_dir,
                   const char* cipher_name,
                   aes_key_t key,
-                  char* outpath);
-void decrypt_file(const char* cipher_path, const char* plain_dir, aes_key_t key, char* outpath);
+                  char* outpath,
+                  progress_callback_t progress_cb,
+                  void* user_data);
+void decrypt_file(const char* cipher_path,
+                  const char* plain_dir,
+                  aes_key_t key,
+                  char* outpath,
+                  progress_callback_t progress_cb,
+                  void* user_data);
+
 void create_and_save_key(alg_t alg, char* dir, char* name, char* outpath);
 state_t gen_iv(void);
 

@@ -2,11 +2,17 @@
 #ifdef _WIN32
     #include <windows.h>
     #include <bcrypt.h>
-    #pragma comment(lib, "bcrypt.lib")
 #else
     #include <sys/stat.h>
 #endif
 #include <errno.h>
+
+// Forward declarations
+static void encrypt_states_CBC(state_arr_t state_arr,
+                                state_t init_vector,
+                                aes_key_t key,
+                                progress_callback_t progress_cb,
+                                void* user_data);
 
 // magic numbers for ciper .jwy files
 const char* magics[] = {"JOEY128", "JOEY192", "JOEY256"};
@@ -175,7 +181,11 @@ state_t gen_iv(void)
 	return init_vector;
 }
 
-void encrypt_states_CBC(state_arr_t state_arr, state_t init_vector, aes_key_t key)
+static void encrypt_states_CBC(state_arr_t state_arr,
+                                state_t init_vector,
+                                aes_key_t key,
+                                progress_callback_t progress_cb,
+                                void* user_data)
 {
 	init_Sbox();
 	round_keys_t round_keys = expand_key(key);
@@ -186,6 +196,10 @@ void encrypt_states_CBC(state_arr_t state_arr, state_t init_vector, aes_key_t ke
 		state_t cipher_state = cipher(round_keys, input_state);
 		state_arr.states[i] = cipher_state;
 		prev = cipher_state;
+		
+		if (progress_cb) {
+			progress_cb(i + 1, state_arr.num_states, user_data);
+		}
 	}
 	free(round_keys.words);
 }
@@ -235,7 +249,9 @@ void encrypt_file(const char* plain_file_path,
                   const char* cipher_file_dir,
                   const char* cipher_file_name,
                   aes_key_t key,
-                  char* outpath)
+                  char* outpath,
+                  progress_callback_t progress_cb,
+                  void* user_data)
 {
 	state_t init_vector = gen_iv();
 	FILE* plain_file_ptr = open_file(plain_file_path);
@@ -244,7 +260,7 @@ void encrypt_file(const char* plain_file_path,
 	fclose(plain_file_ptr);
 	state_arr_t state_arr = byte_arr_to_state_arr(byte_arr);
 	free(byte_arr.bytes);
-	encrypt_states_CBC(state_arr, init_vector, key);
+	encrypt_states_CBC(state_arr, init_vector, key, progress_cb, user_data);
 	FILE* cipher_ptr = build_cipher_file_ptr(cipher_file_dir, cipher_file_name, outpath);
 	write_cipher_file(cipher_ptr, key.alg, init_vector, state_arr, cipher_file_name);
 	free(state_arr.states);

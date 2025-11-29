@@ -51,9 +51,10 @@ void test_write_and_read_key_file128(void)
 {
 	char* key_dir = "test-files/key-files";
 	char* key_name = "key1";
+	char outpath[256];
 
 	aes_key_t key = create_random_key(AES128);
-	FILE* key_ptr = build_key_file_ptr(key_dir, key_name);
+	FILE* key_ptr = build_key_file_ptr(key_dir, key_name, outpath);
 	write_key_file(key_ptr, key);
 	fclose(key_ptr);
 	aes_key_t key2 = create_key_from_file("test-files/key-files/key1.jky");
@@ -73,9 +74,10 @@ void test_write_and_read_key_file192(void)
 {
 	char* key_dir = "test-files/key-files";
 	char* key_name = "key2";
+	char outpath[256];
 
 	aes_key_t key = create_random_key(AES192);
-	FILE* key_ptr = build_key_file_ptr(key_dir, key_name);
+	FILE* key_ptr = build_key_file_ptr(key_dir, key_name, outpath);
 	write_key_file(key_ptr, key);
 	fclose(key_ptr);
 	aes_key_t key2 = create_key_from_file("test-files/key-files/key2.jky");
@@ -90,14 +92,14 @@ void test_write_and_read_key_file192(void)
 	free(key.words);
 	free(key2.words);
 }
-
 void test_write_and_read_key_file256(void)
 {
 	char* key_dir = "test-files/key-files";
 	char* key_name = "key3";
+	char outpath[256];
 
 	aes_key_t key = create_random_key(AES256);
-	FILE* key_ptr = build_key_file_ptr(key_dir, key_name);
+	FILE* key_ptr = build_key_file_ptr(key_dir, key_name, outpath);
 	write_key_file(key_ptr, key);
 	fclose(key_ptr);
 	system("ls -l test-files/key-files/key3.jky");
