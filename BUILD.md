@@ -1,22 +1,40 @@
+## Build system
+
+This project uses a manually coded makefile system. The core directory files are compiled into a library libcore.a which is then a dependency for the file-utilities directory which is compiled into the libutil.a library. All tests are performed using these libraies as source files. The CLI executables also depends on these libraies. 
+
+
+### Build Instructions
+
+This guide explains how to compile the project for both Linux and Windows binaries.
+
 ### Prerequisites
 - GCC (Linux) or MinGW-w64 (for compiling Windows version)
 - `make` utility
+- git
+
+first clone the repository
+```
+git clone https://github.com/JoeyBryson/joey_AES 
+```
+enter project directory
+```
+cd joey_aes
+```
 
 ### Building on Linux
 
-1. Open a terminal in the project root directory.
-2. Run:
+1. Run:
    ```bash
    make
    ```
-3. The compiled binary will be located in `build/joeyaes`.
-4. Install/unistall using
+2. The compiled binary `joeyaes` will be located in `./build`
+3. Install/uninstall using
    ```bash
    make install
    make uninstall
    ```
 
-### Cross-Compiling for Windows (from Linux/Debian)
+### Cross-Compiling for Windows from Linux
 
 1. Install MinGW-w64 cross-compiler:
    ```bash
@@ -27,8 +45,8 @@
    ```bash
    make w=1
    ```
-3. The Windows executable will be located in `build/joeyaes.exe`.
-4. Install manually from windows machine by adding joeyaes.exe to PATH
+3. The Windows executable`joeyaes.exe` will be located in `.\build`.
+4. Install manually from windows machine by adding joeyaes.exe to PATH (follow command in windows_install.cmd)
 
 ### Tests
 
@@ -49,6 +67,7 @@ Use w=1 for testing the windows version(from linux OS).
     ```bash
     make clean
     ```
+- the builds should be cleaned between compiling for different OS's 
 - Compile just the core libraries and not the CLI(prerequisit used used for test targets) 
     ```bash
     make libs

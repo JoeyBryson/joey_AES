@@ -9,5 +9,5 @@ ren "%INSTALL_DIR%\joeyaes.exe" joeyaes
 
 setx PATH "%PATH%;%INSTALL_DIR%" >nul
 
-echo Installation complete! Open a new terminal and run: joeyaes --help
+echo Installation complete
 endlocal

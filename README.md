@@ -1,53 +1,41 @@
 # JOEYAES
-JOEYAES is is a command line based file encryption application written in C. It uses a naive personal implimentation of the (Advanced Encryption Standard) AES algorithm running in Cipher-Block-Chaining(CBC) mode to encrypt/decrypt individual files along with their file names. It has not been sufficiently vetted for security issues to be used for any sensitive application. It has been created for personal educational purposes only.
+JOEYAES is is a command line based file encryption tool written in C. It uses a naive personal implimentation of the (Advanced Encryption Standard) AES algorithm running in Cipher-Block-Chaining(CBC) mode to encrypt/decrypt individual files along with their file names. It has not been sufficiently vetted for security issues to be used for any sensitive application. It has been created for personal educational purposes only. See:
+- [Program Overview](PROGRAM_OVERVIEW.md) for code structure and function
+- [Build](BUILD.md) for compilation and testing instructions using Linux 
+- [Personal Refeclections](PERSONAL_REFLECTIONS.md) for my takeaways from this project
+
+Continue for installation of precompiled binaries and usage:
+
 # Installation
-Download the latest release for your operating system(joeyaes for Linux and joeyaes.exe for windows) and put the executable on your `PATH`:
 
 ## Linux
-
+Download the binary
 ```bash
 wget https://github.com/JoeyBryson/joey_AES/releases/download/v1.0.0/joeyeas
 ```
+make it executable
 ```bash
 chmod +x joeyeas
 ```
+move to usr/local/bin (for PATH access)
 ```bash
 sudo mv joeyeas /usr/local/bin/
 ```
-
 ## Windows
+For my windows using friends:
+Go to the realease page and download windows_install.cmd. Double click the file to run the installer. This will open a Command Prompt window. Once installed, open a *new* Command Prompt window:
+- press Windows Key + R
+- type 'cmd', press enter
 
+continue with the usage instructions in the next section.
 
-Download the executable
-```cmd
-curl -L -o joeyaes.exe https://github.com/JoeyBryson/joey_AES/releases/download/v1.0.0/joeyaes.exe
+# Usage
+Test whether correctly installed by entering
+```bash
+joeyaes help
 ```
-Create a permanent location (if it doesn’t exist) and move the file
-
-```cmd
-mkdir C:\Tools
-move joeyaes.exe C:\Tools\
+this should display the following text which explains the four commands available:
 ```
-:: 3. Rename it to remove the .exe
-```cmd
-ren C:\Tools\joeyaes.exe joeyaes
-```
-:: 4. Add C:\Tools to the system PATH
-```cmd
-setx PATH "%PATH%;C:\Tools"
-```
-
-:: 5. Open a new terminal after this step, then verify:
-```cmd
-joeyaes --help
-```
-
-
-Joey AES - AES Encryption Tool
-================================
-
-Usage: joeyaes <command> [arguments]
-
 Commands:
   genkey <directory> <name> <algorithm>
       Generate a new AES key
@@ -74,15 +62,41 @@ Commands:
   help
       Display this help message
    ```
+I recomend creating a new directory
+```
+mkdir joeyaes_files
+```
+then move into the directory with
+```
+cd joeyaes_files
+```
+make subdirectories
+```
+mkdir plain_files
+mkdir ciphers
+mkdir keys
+mkdir decrypted
+```
+now select a file you want to encrypt and copy across to the joeyaes/plain_files directory. Next, we need to generate a private key. The key is saved as a .jky file.
+```
+joeyaes genkey ./keys key1 128
+```
+this creates a random key which will be your private key. You can use 128, 192 or 256 bits for your key.
+Now encrypt your file:
+```
+joeyaes encrypt plain_files/<your file name> ./ciphers cipher1 ./keys/key1.jky
+```
+cipher1.jwy should now be in your cipher directory. .jwy files are the cipher files which contain the data and name of your original file but in cipher code. If you moved your key1.jky file somewhere secure, and you also deleted your original plain file, no-one would ever be able to read the file's original contents even if they could read the .jwy file on your computer and they had a copy of joeyaes. You could also send this file to someone(who you securely gave the private key) over a non-secure channel. Unless an observer had the private key, it would be completely impossible to interpret the contents of the original file. To decrypt the file with the private key, run
+```
+joeyaes decrypt ciphers/cipher1.jwy ./decrypted ./keys/key1.jky
+```
+your original file should now have been decrypted into the joeyaes_files/decrypted directory.
 
-## Build system
-
-This project uses a manually coded makefile system. The core directory files are compiled into a library libcore.a which is then a dependency for the file-utilities directory which is compiled into the libutil.a library. All tests were performed using these libraies as source files. The CLI executables also depends on these libraies. Testing of the CLI was performmed manually.
 
 
-### Build Instructions
 
-This guide explains how to compile the project for both Linux and Windows binaries.
+
+ 
 
 
 
