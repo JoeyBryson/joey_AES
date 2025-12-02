@@ -50,8 +50,6 @@ const char* get_file_name(const char* path)
 	return (slash_ptr == NULL) ? path : (slash_ptr + 1);
 }
 
-// sets byte_arr to contain all the bytes to be encrypted: the header(name length & name) and file
-// contents itself
 byte_arr_t plain_file_to_byte_arr(FILE* file_ptr, const char* plain_file_name)
 {
 	long file_size = find_file_size(file_ptr);
@@ -74,7 +72,7 @@ byte_arr_t plain_file_to_byte_arr(FILE* file_ptr, const char* plain_file_name)
 	}
 
 	fseek(file_ptr, 0, SEEK_SET);
-	/* write file contents after header byte + name */
+	// write file contents after header byte + name 
 	if (fread(byte_arr.bytes + 1 + name_len, sizeof(byte_t), file_size, file_ptr) !=
 	    (size_t)file_size) {
 		fprintf(stderr, "Error: failed to read file contents into byte_arr\n");
@@ -85,7 +83,7 @@ byte_arr_t plain_file_to_byte_arr(FILE* file_ptr, const char* plain_file_name)
 	return byte_arr;
 }
 
-// sets state_arr to contain the data in byte_arr formatted into state_t blocks with PKCS#7 padding
+
 state_arr_t byte_arr_to_state_arr(byte_arr_t byte_arr)
 {
 	state_arr_t state_arr;
@@ -109,7 +107,7 @@ state_arr_t byte_arr_to_state_arr(byte_arr_t byte_arr)
 		byte_idx += 16;
 		buffer_to_state(&(state_arr.states[i]), buffer);
 	}
-	/* last partial block: copy remaining bytes then PKCS#7 pad */
+	// last partial block: copy remaining bytes then PKCS#7 pad
 	size_t last_bytes = 16 - state_arr.num_padding_bytes;
 	memcpy(&buffer, &(byte_arr.bytes[byte_idx]), last_bytes);
 	for (size_t i = 0; i < state_arr.num_padding_bytes; i++) {
@@ -120,9 +118,8 @@ state_arr_t byte_arr_to_state_arr(byte_arr_t byte_arr)
 	return state_arr;
 }
 
-// creating a .jwy file consisting of magic numbers, cipher name, initialization vector(plain) and
-// cipher-bytes respectively
-void write_cipher_file(FILE* file_ptr,
+
+void write_states_to_cipher_file(FILE* file_ptr,
                        alg_t algorithm,
                        state_t init_vector,
                        state_arr_t state_arr,
@@ -174,11 +171,10 @@ state_t gen_iv(void)
 	return init_vector;
 }
 
-static void encrypt_states_CBC(state_arr_t state_arr,
+void encrypt_states_CBC(state_arr_t state_arr,
                                 state_t init_vector,
                                 aes_key_t key,
-                                progress_callback_t progress_cb,
-                                void* user_data)
+                                progress_callback_t progress_bar_cb)
 {
 	init_Sbox();
 	round_keys_t round_keys = expand_key(key);
@@ -190,8 +186,9 @@ static void encrypt_states_CBC(state_arr_t state_arr,
 		state_arr.states[i] = cipher_state;
 		prev = cipher_state;
 		
-		if (progress_cb) {
-			progress_cb(i + 1, state_arr.num_states, user_data);
+		//prints progress since this is by far most time consuming loop in encrypt_file
+		if (progress_bar_cb) {
+			progress_bar_cb(i + 1, state_arr.num_states);
 		}
 	}
 	free(round_keys.words);
@@ -199,6 +196,7 @@ static void encrypt_states_CBC(state_arr_t state_arr,
 
 FILE* build_cipher_file_ptr(const char* dir, const char* name, char* outpath)
 {
+	//check if valid directory on linux and windows
 #ifndef _WIN32
 	struct stat st;
 	if (!(stat(dir, &st) == 0 && S_ISDIR(st.st_mode))) {
@@ -215,7 +213,7 @@ FILE* build_cipher_file_ptr(const char* dir, const char* name, char* outpath)
 	}
 #endif
 
-	// generate cipher file path
+	//build path
 	size_t path_len = strlen(dir) + strlen(name) + strlen(".jwy") + 2; // 2 for '/' + '\0'
 	char path[path_len];
 	strcpy(path, dir);
@@ -226,7 +224,7 @@ FILE* build_cipher_file_ptr(const char* dir, const char* name, char* outpath)
 	strcat(path, name);
 	strcat(path, ".jwy");
 
-	// generate file for writing
+	//open file on path
 	FILE* file_ptr;
 	file_ptr = fopen(path, "wb");
 	strcpy(outpath, path);
@@ -243,19 +241,26 @@ void encrypt_file(const char* plain_file_path,
                   const char* cipher_file_name,
                   aes_key_t key,
                   char* outpath,
-                  progress_callback_t progress_cb,
-                  void* user_data)
+                  progress_callback_t progress_bar_cb)
 {
 	state_t init_vector = gen_iv();
 	FILE* plain_file_ptr = open_file(plain_file_path);
+
 	const char* plain_file_name = get_file_name(plain_file_path);
 	byte_arr_t byte_arr = plain_file_to_byte_arr(plain_file_ptr, (char*)plain_file_name);
+	
 	fclose(plain_file_ptr);
+
 	state_arr_t state_arr = byte_arr_to_state_arr(byte_arr);
+
 	free(byte_arr.bytes);
-	encrypt_states_CBC(state_arr, init_vector, key, progress_cb, user_data);
+
+	encrypt_states_CBC(state_arr, init_vector, key, progress_bar_cb);
+
 	FILE* cipher_ptr = build_cipher_file_ptr(cipher_file_dir, cipher_file_name, outpath);
-	write_cipher_file(cipher_ptr, key.alg, init_vector, state_arr, cipher_file_name);
+
+	write_states_to_cipher_file(cipher_ptr, key.alg, init_vector, state_arr, cipher_file_name);
+
 	free(state_arr.states);
 	fclose(cipher_ptr);
 }

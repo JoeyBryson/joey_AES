@@ -85,29 +85,6 @@ read_cipher_file_to_states(FILE* file_ptr, alg_t* file_alg, state_t* init_vector
 	return state_arr;
 }
 
-void write_plain_states_to_file(state_arr_t state_arr, const char* path)
-{
-	FILE* file_ptr;
-	file_ptr = fopen(path, "wb");
-
-	if (file_ptr == NULL) {
-		fprintf(stderr, "Error: File creation failed\n");
-		SUGGEST_HELP_IF_CLI();
-		exit(EXIT_FAILURE);
-	}
-
-	byte_t buffer[16];
-	for (size_t i = 0; i < state_arr.num_states - 1; i++) {
-		state_to_buffer(&state_arr.states[i], buffer);
-		fwrite(buffer, sizeof(byte_t), 16, file_ptr);
-	}
-
-	state_to_buffer(&state_arr.states[state_arr.num_states - 1], buffer);
-	size_t remainder = buffer[15];
-	fwrite(buffer, sizeof(byte_t), 16 - remainder, file_ptr);
-	fclose(file_ptr);
-}
-
 byte_arr_t state_arr_to_byte_arr(state_arr_t state_arr)
 {
 	byte_arr_t byte_arr;
@@ -130,7 +107,7 @@ byte_arr_t state_arr_to_byte_arr(state_arr_t state_arr)
 	}
 
 	state_to_buffer(&state_arr.states[state_arr.num_states - 1], buffer);
-	size_t last_bytes = 16 - state_arr.num_padding_bytes;
+	size_t last_bytes = 16 - state_arr.num_padding_bytes;//PKCS#7 padding
 	memcpy(&byte_arr.bytes[byte_idx], buffer, last_bytes);
 
 	return byte_arr;
@@ -138,6 +115,7 @@ byte_arr_t state_arr_to_byte_arr(state_arr_t state_arr)
 
 FILE* build_plain_file_ptr(const char* dir, byte_arr_t byte_arr, char* outpath)
 {
+	//check if valid directory on linux and windows
 #ifndef _WIN32
 	struct stat st;
 	if (!(stat(dir, &st) == 0 && S_ISDIR(st.st_mode))) {
@@ -154,6 +132,7 @@ FILE* build_plain_file_ptr(const char* dir, byte_arr_t byte_arr, char* outpath)
 	}
 #endif
 
+	//build path
 	size_t name_len = byte_arr.bytes[0];
 	char name[name_len + 1];
 	for (size_t i = 0; i < name_len; i++) {
@@ -170,10 +149,11 @@ FILE* build_plain_file_ptr(const char* dir, byte_arr_t byte_arr, char* outpath)
 
 	strcat(path, name);
 
-	// generate file for writing
+	//open file on path
 	FILE* file_ptr;
 	file_ptr = fopen(path, "wb");
 	strcpy(outpath, path);
+
 	if (file_ptr == NULL) {
 		fprintf(stderr, "Error: Plainfile recreation failed (tried path: %s)\n", path);
 		perror("fopen");
@@ -188,6 +168,7 @@ void rewrite_plain_file_from_byte_arr(FILE* plain_file_ptr, byte_arr_t byte_arr)
 	size_t name_len = byte_arr.bytes[0];
 	byte_t* content = &byte_arr.bytes[1 + name_len];
 	size_t content_len = byte_arr.num_bytes - 1 - name_len;
+
 	if (fwrite(content, sizeof(byte_t), content_len, plain_file_ptr) != content_len) {
 		fprintf(stderr, "Error: failed to write plain file contents\n");
 		SUGGEST_HELP_IF_CLI();
@@ -195,11 +176,10 @@ void rewrite_plain_file_from_byte_arr(FILE* plain_file_ptr, byte_arr_t byte_arr)
 	}
 }
 
-static void decrypt_states_CBC(state_arr_t state_arr,
+void decrypt_states_CBC(state_arr_t state_arr,
                                 state_t init_vector,
                                 aes_key_t key,
-                                progress_callback_t progress_cb,
-                                void* user_data)
+                                progress_callback_t progress_bar_cb)
 {
 	init_Sbox();
 	round_keys_t round_keys = expand_key(key);
@@ -211,8 +191,9 @@ static void decrypt_states_CBC(state_arr_t state_arr,
 		prev = state_arr.states[i];
 		state_arr.states[i] = plain_state;
 		
-		if (progress_cb) {
-			progress_cb(i + 1, state_arr.num_states, user_data);
+		//prints progress bar since this is by far most time consuming loop in decrypt_file
+		if (progress_bar_cb) {
+			progress_bar_cb(i + 1, state_arr.num_states);
 		}
 	}
 	free(round_keys.words);
@@ -222,16 +203,18 @@ void decrypt_file(const char* cipher_path,
                   const char* plain_dir,
                   aes_key_t key,
                   char* outpath,
-                  progress_callback_t progress_cb,
-                  void* user_data)
+                  progress_callback_t progress_bar_cb)
 {
 	FILE* cipher_file_ptr = fopen(cipher_path, "rb");
+
 	alg_t file_alg;
 	state_t init_vec;
 	char cipher_file_name[MAX_NAME_LEN];
 	state_arr_t state_arr =
 	    read_cipher_file_to_states(cipher_file_ptr, &file_alg, &init_vec, cipher_file_name);
+
 	fclose(cipher_file_ptr);
+
 	if (file_alg != key.alg) {
 		fprintf(stderr,
 		        "Error: Key and file different algorithm types\n key type %s and file type %s\n",
@@ -240,9 +223,10 @@ void decrypt_file(const char* cipher_path,
 		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
-	decrypt_states_CBC(state_arr, init_vec, key, progress_cb, user_data);
-	/* now that states are decrypted, read padding byte from last state */
-	state_arr.num_padding_bytes = state_arr.states[state_arr.num_states - 1].col[3].byte[3];
+
+	decrypt_states_CBC(state_arr, init_vec, key, progress_bar_cb);
+
+	state_arr.num_padding_bytes = state_arr.states[state_arr.num_states - 1].col[3].byte[3];//reading padding byte(last byte set to num padding bytes by PKSC#7)
 	if (state_arr.num_padding_bytes == 0 || state_arr.num_padding_bytes > 16) {
 		fprintf(stderr,
 		        "Error: invalid padding byte (%zu) after decryption\n",
@@ -250,10 +234,15 @@ void decrypt_file(const char* cipher_path,
 		SUGGEST_HELP_IF_CLI();
 		exit(EXIT_FAILURE);
 	}
+
 	byte_arr_t byte_arr = state_arr_to_byte_arr(state_arr);
+
 	free(state_arr.states);
+
 	FILE* plain_file_ptr = build_plain_file_ptr(plain_dir, byte_arr, outpath);
+
 	rewrite_plain_file_from_byte_arr(plain_file_ptr, byte_arr);
+
 	free(byte_arr.bytes);
 	fclose(plain_file_ptr);
 }

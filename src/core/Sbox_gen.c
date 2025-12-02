@@ -5,7 +5,8 @@ byte_t Sbox_arr[256];
 byte_t inv_Sbox_arr[256];
 bool Sbox_is_initialized;
 
-//
+//see FIPS 5.1.1
+
 byte_t affine_transform(byte_t byte)
 {
 	byte_t mat_row = 0x8F;    // 10001111₂

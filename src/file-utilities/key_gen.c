@@ -12,6 +12,7 @@
 static int key_lengths[] = {4, 6, 8};
 static const char* key_magics[] = {"JKEY128", "JKEY192", "JKEY256"};
 
+//generate random key
 aes_key_t create_random_key(alg_t alg)
 {
 	aes_key_t key;
@@ -46,6 +47,7 @@ aes_key_t create_random_key(alg_t alg)
 	return key;
 }
 
+//open a key file
 aes_key_t create_key_from_file(char* key_path)
 {
 	FILE* file_ptr = fopen(key_path, "rb");
@@ -103,6 +105,7 @@ void write_key_file(FILE* file_ptr, aes_key_t key)
 
 FILE* build_key_file_ptr(const char* dir, const char* name, char* outpath)
 {
+	//check if valid directory on linux and windows
 #ifndef _WIN32
 	struct stat st;
 	if (!(stat(dir, &st) == 0 && S_ISDIR(st.st_mode))) {
@@ -118,7 +121,7 @@ FILE* build_key_file_ptr(const char* dir, const char* name, char* outpath)
 		exit(EXIT_FAILURE);
 	}
 #endif
-
+	//build path
 	size_t path_len = strlen(dir) + strlen(name) + strlen(".jky") + 2; // 2 for '/' + '\0'
 	char path[path_len];
 	strcpy(path, dir);
@@ -127,9 +130,9 @@ FILE* build_key_file_ptr(const char* dir, const char* name, char* outpath)
 	}
 
 	strcat(path, name);
-	strcat(path, ".jky"); // joey-key
+	strcat(path, ".jky"); 
 
-	// generate file for writing
+	//open file on path
 	FILE* file_ptr;
 	file_ptr = fopen(path, "wb");
 	strcpy(outpath, path);
@@ -147,6 +150,7 @@ void create_and_save_key(alg_t alg, char* dir, char* name, char* outpath)
 	aes_key_t key = create_random_key(alg);
 	FILE* file_ptr = build_key_file_ptr(dir, name, outpath);
 	write_key_file(file_ptr, key);
+
 	fclose(file_ptr);
 	free(key.words);
 }

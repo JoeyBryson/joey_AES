@@ -159,7 +159,7 @@ void test_cipher_file_to_states_to_file_again()
 	fclose(fin);
 
 	FILE* fout = build_cipher_file_ptr(cipher_dir, cipher_name, outpath);
-	write_cipher_file(fout, algorithm, init_vector, state_arr, cipher_name);
+	write_states_to_cipher_file(fout, algorithm, init_vector, state_arr, cipher_name);
 	fclose(fout);
 
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(1,

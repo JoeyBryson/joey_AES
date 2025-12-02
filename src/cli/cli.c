@@ -1,4 +1,3 @@
-#include "cli.h"
 #include "utils.h"
 #include "aes.h"
 
@@ -6,15 +5,15 @@ static const char* alg_str[] = {"128", "192", "256"};
 
 #define PROGRESS_BAR_WIDTH 50
 
-void print_progress_bar(size_t current, size_t total, void* user_data)
+
+void print_progress_bar(size_t current, size_t total)
 {
-	(void)user_data; // unused
-	
 	if (total == 0) return;
 	
 	int percentage = (int)((current * 100) / total);
 	int filled = (int)((current * PROGRESS_BAR_WIDTH) / total);
 	
+	//prints to stderr to keep stout clean for future tooling
 	fprintf(stderr, "\r[");
 	for (int i = 0; i < PROGRESS_BAR_WIDTH; i++) {
 		if (i < filled) {
@@ -83,9 +82,9 @@ int cmd_encrypt(int argc, char** argv)
 	
 	fprintf(stderr, "Encrypting: %s\n", plain_path);
 	encrypt_file(plain_path, cipher_dir, cipher_name, key, outpath, 
-	             print_progress_bar, NULL);
+	             print_progress_bar);
 	free(key.words);
-	printf("✓ Encrypted file created: %s\n", outpath);
+	printf("Encrypted file created: %s\n", outpath);
 	return 0;
 }
 
@@ -106,11 +105,12 @@ int cmd_decrypt(int argc, char** argv)
 	
 	fprintf(stderr, "Decrypting: %s\n", cipher_path);
 	decrypt_file(cipher_path, plain_dir, key, outpath, 
-	             print_progress_bar, NULL);
+	             print_progress_bar);
 	free(key.words);
-	printf("✓ Decrypted file created: %s\n", outpath);
+	printf("Decrypted file created: %s\n", outpath);
 	return 0;
 }
+
 int cmd_genkey(int argc, char** argv)
 {
 	if (argc != 3) {
@@ -140,10 +140,12 @@ int cmd_genkey(int argc, char** argv)
 	
 	char outpath[MAX_NAME_LEN];
 	create_and_save_key(alg, dir, name, outpath);
-	printf("✓ AES-%s key created: %s\n", alg_str[alg], outpath);
+	printf("AES-%s key created: %s\n", alg_str[alg], outpath);
 	return 0;
 
-}int main(int argc, char** argv)
+}
+
+int main(int argc, char** argv)
 {
 	is_cli_mode = true;
 	

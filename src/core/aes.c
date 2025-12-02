@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//initialized in Sbox_gen.c
 byte_t Sbox(byte_t byte)
 {
 	if (!Sbox_is_initialized) {
@@ -11,6 +12,7 @@ byte_t Sbox(byte_t byte)
 	return Sbox_arr[byte];
 }
 
+//initialized in Sbox_gen.c
 byte_t inv_Sbox(byte_t byte)
 {
 	if (!Sbox_is_initialized) {
@@ -20,6 +22,7 @@ byte_t inv_Sbox(byte_t byte)
 	return inv_Sbox_arr[byte];
 }
 
+//FIPS 4.2
 byte_t two_times(byte_t byte)
 {
 	if (byte & 0x80) {
@@ -31,6 +34,7 @@ byte_t two_times(byte_t byte)
 	return byte;
 }
 
+//FIPS 4.2
 byte_t GF_mul(byte_t byte1, byte_t byte2)
 {
 	byte_t result = 0;
@@ -45,6 +49,7 @@ byte_t GF_mul(byte_t byte1, byte_t byte2)
 	return result;
 }
 
+//FIPS 4.1
 word_t add_words(word_t word1, word_t word2)
 {
 	word_t output;
@@ -54,6 +59,7 @@ word_t add_words(word_t word1, word_t word2)
 	return output;
 }
 
+//FIPS 5.1.4
 // key_ptr points to the memory location of the first of the four words making up the round key
 void add_round_key(state_t* state, word_t* key_ptr)
 {
@@ -63,6 +69,7 @@ void add_round_key(state_t* state, word_t* key_ptr)
 	}
 }
 
+//FIPS 5.1.1
 void sub_bytes(state_t* state)
 {
 	for (int r = 0; r < 4; r++) {
@@ -72,6 +79,7 @@ void sub_bytes(state_t* state)
 	}
 }
 
+//FIPS 5.1.2
 void shift_rows(state_t* state)
 {
 	state_t temp;
@@ -83,7 +91,7 @@ void shift_rows(state_t* state)
 	*state = temp;
 }
 
-// matrix multiplication by a matrix with the form decribed in section 4.3
+// matrix multiplication by a matrix with the form decribed in FIPS section 4.3
 word_t mul_matrix(word_t word, word_t mat_col)
 {
 	word_t output = {{0x00, 0x00, 0x00, 0x00}};
@@ -95,6 +103,7 @@ word_t mul_matrix(word_t word, word_t mat_col)
 	return output;
 }
 
+//FIPS 5.1.3
 void mix_columns(state_t* state)
 {
 	word_t mixing_word = (word_t){{0x02, 0x01, 0x01, 0x03}};
@@ -103,6 +112,7 @@ void mix_columns(state_t* state)
 	}
 }
 
+//FIPS 5.3.2
 void inv_sub_bytes(state_t* state)
 {
 	for (int r = 0; r < 4; r++) {
@@ -112,6 +122,7 @@ void inv_sub_bytes(state_t* state)
 	}
 }
 
+//FIPS 5.3.1
 void inv_shift_rows(state_t* state)
 {
 	state_t temp;
@@ -123,6 +134,7 @@ void inv_shift_rows(state_t* state)
 	*state = temp;
 }
 
+//FIPS 5.3.3
 void inv_mix_columns(state_t* state)
 {
 	word_t mixing_word = (word_t){{0x0E, 0x09, 0x0D, 0x0B}};
@@ -131,6 +143,7 @@ void inv_mix_columns(state_t* state)
 	}
 }
 
+//FIPS 5.1
 state_t cipher(round_keys_t round_keys, state_t plain_text)
 {
 
@@ -153,6 +166,7 @@ state_t cipher(round_keys_t round_keys, state_t plain_text)
 	return state;
 }
 
+//FIPS 5.3
 state_t inv_cipher(round_keys_t round_keys, state_t plain_text)
 {
 	state_t state = plain_text;

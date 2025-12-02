@@ -8,6 +8,7 @@
 #endif
 
 bool is_cli_mode = false;
+//utility functions used by both file_encrypt and file_decrypt
 
 void buffer_to_state(state_t* state, byte_t* buffer)
 {
