@@ -22,4 +22,4 @@ setx PATH "%PATH%;%INSTALL_DIR%" >nul
 
 echo Installation complete.
 endlocal
-exit /b 0
+pause

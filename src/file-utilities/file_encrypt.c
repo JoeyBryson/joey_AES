@@ -7,13 +7,6 @@
 #endif
 #include <errno.h>
 
-// Forward declarations
-static void encrypt_states_CBC(state_arr_t state_arr,
-                                state_t init_vector,
-                                aes_key_t key,
-                                progress_callback_t progress_cb,
-                                void* user_data);
-
 // magic numbers for ciper .jwy files
 const char* magics[] = {"JOEY128", "JOEY192", "JOEY256"};
 

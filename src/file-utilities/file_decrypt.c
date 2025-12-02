@@ -8,13 +8,6 @@
 #endif
 #define MAX_NAME_LEN 255
 
-// Forward declarations
-static void decrypt_states_CBC(state_arr_t state_arr,
-                                state_t init_vector,
-                                aes_key_t key,
-                                progress_callback_t progress_cb,
-                                void* user_data);
-
 state_arr_t
 read_cipher_file_to_states(FILE* file_ptr, alg_t* file_alg, state_t* init_vector, char* cipher_name)
 {
