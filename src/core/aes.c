@@ -91,7 +91,7 @@ void shift_rows(state_t* state)
 	*state = temp;
 }
 
-// matrix multiplication by a matrix with the form decribed in FIPS section 4.3
+// matrix multiplication by a matrix with the form described in FIPS section 4.3
 word_t mul_matrix(word_t word, word_t mat_col)
 {
 	word_t output = {{0x00, 0x00, 0x00, 0x00}};

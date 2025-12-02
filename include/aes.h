@@ -11,7 +11,7 @@ typedef struct {
 } word_t;
 
 typedef struct {
-	word_t col[4]; // collumn
+	word_t col[4]; // column
 } state_t;
 typedef struct {
 	uint8_t num_key_words;
@@ -39,11 +39,13 @@ void init_Sbox(void);
 byte_t Sbox(byte_t byte);
 byte_t inv_Sbox(byte_t byte);
 
+//key expansion
 word_t rot_word(word_t word);
 round_keys_t expand_key(aes_key_t key);
 word_t sub_word(word_t word);
 word_t add_words(word_t word1, word_t word2);
 
+//cipher and subfunctions
 state_t cipher(round_keys_t round_keys, state_t input);
 void add_round_key(state_t* state, word_t* key_ptr);
 void sub_bytes(state_t* state);
@@ -51,6 +53,7 @@ void shift_rows(state_t* state);
 word_t mul_matrix(word_t word, word_t mat_row);
 void mix_columns(state_t* state);
 
+//inverse cipher and sub functions
 state_t inv_cipher(round_keys_t round_keys, state_t input);
 void inv_sub_bytes(state_t* state);
 void inv_shift_rows(state_t* state);

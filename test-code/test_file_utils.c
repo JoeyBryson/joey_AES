@@ -49,21 +49,6 @@ int files_are_equal(const char* path1, const char* path2)
 	return 1;
 }
 
-void print_states(state_t* states, int num_states)
-{
-	for (int n = 0; n < num_states; n++) {
-		printf("State %d:\n", n);
-		for (int j = 0; j < 4; j++) {
-			for (int i = 0; i < 4; i++) {
-				byte_t b = states[n].col[i].byte[j];
-				printf("%02x(%c) ", b, (b >= 32 && b <= 126) ? b : '.');
-			}
-			printf("\n");
-		}
-		printf("\n");
-	}
-}
-
 void test_plain_file_to_byte_arr_to_file_again()
 {
 	const char* in_file_path = "test-files/in-files/test_text1.txt";
@@ -136,7 +121,7 @@ void test_encrypt_file_creates_a_file()
 	aes_key.words[2] = (word_t){{0xAB, 0xF7, 0x15, 0x88}};
 	aes_key.words[3] = (word_t){{0x09, 0xCF, 0x4F, 0x3C}};
 
-	encrypt_file(plaintext_path, cipher_dir, cipher_name, aes_key, outpath, NULL, NULL);
+	encrypt_file(plaintext_path, cipher_dir, cipher_name, aes_key, outpath, NULL);
 
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(1, file_exists(outpath), "failed to generate file");
 
@@ -185,7 +170,7 @@ void test_decrypt_previously_encrypted_file()
 	aes_key.words[2] = (word_t){{0xAB, 0xF7, 0x15, 0x88}};
 	aes_key.words[3] = (word_t){{0x09, 0xCF, 0x4F, 0x3C}};
 
-	decrypt_file(cipher_path, (char*)plain_out_dir, aes_key, outpath, NULL, NULL);
+	decrypt_file(cipher_path, (char*)plain_out_dir, aes_key, outpath, NULL);
 
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(1,
 	                                files_are_equal("test-files/out-files/test_text3.txt",
@@ -217,8 +202,8 @@ void test_encrypt_decrypt_large_jpeg()
 
 	clock_t start = clock();
 
-	encrypt_file(plaintext_path, cipher_dir, cipher_name, aes_key, cipher_out, NULL, NULL);
-	decrypt_file(cipher_out, plain_out_dir, aes_key, plain_out, NULL, NULL);
+	encrypt_file(plaintext_path, cipher_dir, cipher_name, aes_key, cipher_out, NULL);
+	decrypt_file(cipher_out, plain_out_dir, aes_key, plain_out, NULL);
 
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(
 	    1,

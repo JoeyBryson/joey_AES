@@ -1,0 +1,39 @@
+version: "0.2"
+words:
+  - ASAN
+  - ASANFLAGS
+  - Ceedling
+  - Cipherblocks
+  - cipherfile
+  - ciphertext
+  - CMOCK
+  - DNDEBUG
+  - DUNITY
+  - endlocal
+  - FIPS
+  - genkey
+  - implemented
+  - JKEY
+  - joeyaes
+  - Karlesky
+  - lbcrypt
+  - lcrypto
+  - libcore
+  - libfileutils
+  - libutil
+  - lptr
+  - makefiles
+  - mykey
+  - NTSTATUS
+  - parallelizable
+  - PKCS
+  - plainfile
+  - ptrf
+  - Sbox
+  - setlocal
+  - setx
+  - USERPROFILE
+  - Vander
+  - Voord
+  - Wextra
+language: en

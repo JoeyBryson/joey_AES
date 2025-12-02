@@ -1,6 +1,6 @@
 # Build system
 
-This project uses a manually coded makefile system. The core directory files are compiled into a library libcore.a which is then a dependency for the file-utilities directory which is compiled into the libutil.a library. All tests are performed using these libraies as source files. The CLI executables also depends on these libraies. This guide explains how to compile the project for both Linux and Windows binaries.
+This project uses a manually coded makefile system. The core directory files are compiled into a library libcore.a which is then a dependency for the file-utilities directory which is compiled into the libutil.a library. All tests are performed using these libraries as source files. The CLI executables also depends on these libraries. This guide explains how to compile the project for both Linux and Windows binaries.
 
 ## Prerequisites
 
@@ -63,13 +63,13 @@ Run all tests with the command
 make tests
 ```
 
-Run invividual test files with
+Run individual test files with
 
 ```bash
 make <test_name>
 ```
 
-test names correspond to the file names in test-code without the extentions.
+test names correspond to the file names in test-code without the extensions.
 Use w=1 for testing the windows version(from linux OS).
 
 ## Notes
@@ -82,7 +82,7 @@ Use w=1 for testing the windows version(from linux OS).
 
 - the builds should be cleaned between compiling for different OS's
 
-- Compile just the core libraries and not the CLI(prerequisit used used for test targets)
+- Compile just the core libraries and not the CLI(prerequisite used for test targets)
 
     ```bash
     make libs

@@ -1,10 +1,10 @@
 # JOEYAES  
 
-JOEYAES is is a command line based file encryption tool written in C. It uses a naive personal implimentation of the (Advanced Encryption Standard) AES algorithm running in Cipher-Block-Chaining(CBC) mode to encrypt/decrypt individual files along with their file names. It has not been sufficiently vetted for security issues to be used for any sensitive application. It has been created for personal educational purposes only. See:  
+JOEYAES is is a command line based file encryption tool written in C. It uses a naive personal implementation of the (Advanced Encryption Standard) AES algorithm running in Cipher-Block-Chaining(CBC) mode to encrypt/decrypt individual files along with their file names. It has not been sufficiently vetted for security issues to be used for any sensitive application. It has been created for personal educational purposes only. See:  
 
 - [Program Overview](PROGRAM_OVERVIEW.md) for code structure and function
 - [Build](BUILD.md) for compilation and testing instructions using Linux
-- [Personal Refeclections](PERSONAL_REFLECTIONS.md) for my takeaways from this project
+- [Personal Reflections](PERSONAL_REFLECTIONS.md) for my takeaways from this project
 
 Continue for installation of precompiled binaries and usage:
 
@@ -33,7 +33,7 @@ sudo mv joeyaes /usr/local/bin/
 ### Windows
 
 For my windows using friends:
-Go to the realease page and download windows_install.cmd. Double click the file to run the installer. This will open a Command Prompt window. Once installed, open a *new* Command Prompt window:
+Go to the release page and download windows_install.cmd. Double click the file to run the installer. This will open a Command Prompt window. Once installed, open a *new* Command Prompt window:
 
 - press Windows Key + R
 - type 'cmd', press enter
@@ -78,7 +78,7 @@ Commands:
       Display this help message
    ```
 
-I recomend creating a new directory
+I recommend creating a new directory
 
 ```bash
 mkdir joeyaes_files

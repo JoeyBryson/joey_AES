@@ -20,8 +20,16 @@ endif
 
 CFLAGS  = -std=c99
 CFLAGS += -I.
-CFLAGS += -g
 CFLAGS += -Wall -Wextra -pedantic
+
+# Build mode: make (debug) or make RELEASE=1 (optimized)
+ifdef OPTIMIZE
+    CFLAGS += -O3 -DNDEBUG
+    # Optional: uncomment for even more aggressive optimizations
+    # CFLAGS += -march=native -flto
+else
+    CFLAGS += -g -O0
+endif
 
 ROOT_DIR := $(CURDIR)
 BUILD_DIR := $(ROOT_DIR)/build

@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+
+//utility for printing jwy files for verification
+
 static void print_hex_ascii_line(const unsigned char* buf, size_t len)
 {
 	for (size_t i = 0; i < len; ++i) {

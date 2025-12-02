@@ -1,1 +1,10 @@
 build/
+
+# Test output files
+test-code/test-files/out-files/test_text1.txt
+test-code/test-files/out-files/test_text2.txt
+test-code/test-files/out-files/test_text3.txt
+test-code/test-files/out-files/wales.jpg
+test-code/test-files/cipher-files/test_3_cipher.jwy
+test-code/test-files/cipher-files/big1.jwy
+test-code/test-files/cipher-files-copied/test_3_cipher.jwy

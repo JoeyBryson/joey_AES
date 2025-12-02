@@ -226,7 +226,7 @@ void decrypt_file(const char* cipher_path,
 
 	decrypt_states_CBC(state_arr, init_vec, key, progress_bar_cb);
 
-	state_arr.num_padding_bytes = state_arr.states[state_arr.num_states - 1].col[3].byte[3];//reading padding byte(last byte set to num padding bytes by PKSC#7)
+	state_arr.num_padding_bytes = state_arr.states[state_arr.num_states - 1].col[3].byte[3];//reading padding byte(last byte set to num padding bytes by PKCS#7)
 	if (state_arr.num_padding_bytes == 0 || state_arr.num_padding_bytes > 16) {
 		fprintf(stderr,
 		        "Error: invalid padding byte (%zu) after decryption\n",

@@ -61,11 +61,11 @@ void test_write_and_read_key_file128(void)
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(
 	    memcmp(key.words, key2.words, key.num_key_words * sizeof(word_t)),
 	    0,
-	    "Key read/write unsuccessfull");
+	    "Key read/write unsuccessful");
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(key.num_key_words,
 	                                key2.num_key_words,
-	                                "Key read/write unsuccessfull");
-	TEST_ASSERT_EQUAL_INT32_MESSAGE(key.alg, key2.alg, "Key read/write unsuccessfull");
+	                                "Key read/write unsuccessful");
+	TEST_ASSERT_EQUAL_INT32_MESSAGE(key.alg, key2.alg, "Key read/write unsuccessful");
 	free(key.words);
 	free(key2.words);
 }
@@ -84,11 +84,11 @@ void test_write_and_read_key_file192(void)
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(
 	    memcmp(key.words, key2.words, key.num_key_words * sizeof(word_t)),
 	    0,
-	    "Key read/write unsuccessfull");
+	    "Key read/write unsuccessful");
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(key.num_key_words,
 	                                key2.num_key_words,
-	                                "Key read/write unsuccessfull");
-	TEST_ASSERT_EQUAL_INT32_MESSAGE(key.alg, key2.alg, "Key read/write unsuccessfull");
+	                                "Key read/write unsuccessful");
+	TEST_ASSERT_EQUAL_INT32_MESSAGE(key.alg, key2.alg, "Key read/write unsuccessful");
 	free(key.words);
 	free(key2.words);
 }
@@ -107,11 +107,11 @@ void test_write_and_read_key_file256(void)
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(
 	    memcmp(key.words, key2.words, key.num_key_words * sizeof(word_t)),
 	    0,
-	    "Key read/write unsuccessfull");
+	    "Key read/write unsuccessful");
 	TEST_ASSERT_EQUAL_INT32_MESSAGE(key.num_key_words,
 	                                key2.num_key_words,
-	                                "Key read/write unsuccessfull");
-	TEST_ASSERT_EQUAL_INT32_MESSAGE(key.alg, key2.alg, "Key read/write unsuccessfull");
+	                                "Key read/write unsuccessful");
+	TEST_ASSERT_EQUAL_INT32_MESSAGE(key.alg, key2.alg, "Key read/write unsuccessful");
 	free(key.words);
 	free(key2.words);
 }

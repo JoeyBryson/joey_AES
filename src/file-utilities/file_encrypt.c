@@ -7,7 +7,7 @@
 #endif
 #include <errno.h>
 
-// magic numbers for ciper .jwy files
+// magic numbers for cipher .jwy files
 const char* magics[] = {"JOEY128", "JOEY192", "JOEY256"};
 
 long find_file_size(FILE* file_ptr)

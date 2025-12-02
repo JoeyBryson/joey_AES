@@ -11,9 +11,9 @@ LIB_UTIL = $(BUILD_DIR)/libfileutils.a
 LIB_CORE = $(BUILD_DIR)/libcore.a
 
 UNITY_SRC = $(ROOT_DIR)/test-framework/unity.c
-USEFULL_FUNC_SRC = $(TEST_DIR)/useful_functions.c
+USEFUL_FUNC_SRC = $(TEST_DIR)/useful_functions.c
 
-SRCS = $(UNITY_SRC) $(USEFULL_FUNC_SRC)
+SRCS = $(UNITY_SRC) $(USEFUL_FUNC_SRC)
 
 # EXE_EXT is set by root makefile for Windows builds
 EXE_EXT ?=
@@ -81,3 +81,10 @@ $(TEST_BUILD_DIR)/test_key_gen$(EXE_EXT): test_key_gen.c $(LIB_UTIL) $(LIB_CORE)
 
 clean:
 	rm -f $(TEST_BUILD_DIR)/*
+	rm -f test-files/out-files/test_text1.txt
+	rm -f test-files/out-files/test_text2.txt
+	rm -f test-files/out-files/test_text3.txt
+	rm -f test-files/out-files/wales.jpg
+	rm -f test-files/cipher-files/test_3_cipher.jwy
+	rm -f test-files/cipher-files/big1.jwy
+	rm -f test-files/cipher-files-copied/test_3_cipher.jwy

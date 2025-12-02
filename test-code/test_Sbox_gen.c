@@ -6,7 +6,7 @@
 
 #include "unity.h"
 
-// tests for the requisit functions for the generation of the AES Substitution Box (Sbox)
+// tests for the requisite functions for the generation of the AES Substitution Box (Sbox)
 // and the Sbox and inv_Sbox functions themselves
 
 // Official Sbox from FIPS-197
