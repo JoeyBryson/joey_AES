@@ -1,6 +1,6 @@
 # JOEYAES  
 
-A C command-line file encryption tool with no third-party dependencies, built to learn AES.
+Command-line file encryption tool for Linux and Windows with no third-party dependencies, built as a learning exercise
 
 [![Release](https://img.shields.io/github/v/release/JoeyBryson/joey_AES?include_prereleases&label=release)](https://github.com/JoeyBryson/joey_AES/releases)
 ![License: none](https://img.shields.io/badge/license-none-lightgrey)
