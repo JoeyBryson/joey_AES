@@ -1,6 +1,4 @@
-Command-line file encryption tool for Linux and Windows with no third-party dependencies, built as a learning exercise
-
-# JOEY_AES  
+**Command-line file encryption tool for Linux and Windows with no third-party dependencies, built as a learning exercise**
 
 [![Release](https://img.shields.io/github/v/release/JoeyBryson/joey_AES?include_prereleases&label=release)](https://github.com/JoeyBryson/joey_AES/releases)
 ![License: none](https://img.shields.io/badge/license-none-lightgrey)
@@ -9,9 +7,9 @@ JOEYAES is an educational C command-line project for encrypting and decrypting i
 
 The project was created to explore how AES, key handling, file I/O, and a command-line workflow fit together in a working program. The CLI provides a repeatable way to generate keys and process files while studying the implementation.
 
-JOEYAES is not a replacement for a mature tool such as 7-Zip, which supports encrypted archives as well as compression. This implementation has not been independently reviewed, and CBC encryption alone does not authenticate data or detect tampering. Use it for learning and experimentation; for sensitive information, choose a maintained, independently reviewed security tool.
+JOEYAES is not a replacement for a mature tool such as [7-Zip](https://7-zip.org/), which supports encrypted archives as well as compression. This implementation has not been independently reviewed, and CBC encryption alone does not authenticate data or detect tampering. Use it for learning and experimentation; for sensitive information, choose a maintained, independently reviewed security tool.
 
-The `joeyaes` program has no third-party library dependencies: the AES implementation, CBC mode, and file formats are written from scratch using only the C standard library plus operating-system facilities (POSIX headers and `/dev/urandom` on Linux; Windows APIs, including `bcrypt` for random numbers, on Windows). Unit tests use the bundled [Unity](test-framework/unity.h) framework, and OpenSSL is used only by a developer script that generates test vectors, so neither is needed to build or run the program.
+The `joeyaes` program has no third-party library dependencies: the AES implementation, CBC mode, and file formats are written from scratch using only the C standard library plus operating-system facilities (POSIX headers and `/dev/urandom` on Linux; Windows APIs, including `bcrypt` for random numbers, on Windows). Unit tests use the bundled [Unity](https://www.throwtheswitch.org/unity) framework, and [OpenSSL](https://www.openssl.org/) is used only by a developer script that generates test vectors, so neither is needed to build or run the program.
 
 See:
 
