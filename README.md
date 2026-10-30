@@ -1,12 +1,25 @@
 # JOEYAES  
 
-JOEYAES is is a command line based file encryption tool written in C. It uses a naive personal implementation of the (Advanced Encryption Standard) AES algorithm running in Cipher-Block-Chaining(CBC) mode to encrypt/decrypt individual files along with their file names. It has not been sufficiently vetted for security issues to be used for any sensitive application. It has been created for personal educational purposes only. See:  
+A C command-line file encryption tool with no third-party dependencies, built to learn AES.
+
+[![Release](https://img.shields.io/github/v/release/JoeyBryson/joey_AES?include_prereleases&label=release)](https://github.com/JoeyBryson/joey_AES/releases)
+![License: none](https://img.shields.io/badge/license-none-lightgrey)
+
+JOEYAES is an educational C command-line project for encrypting and decrypting individual files with a personal AES-CBC implementation and custom file formats; it is not suitable for protecting sensitive data.
+
+The project was created to explore how AES, key handling, file I/O, and a command-line workflow fit together in a working program. The CLI provides a repeatable way to generate keys and process files while studying the implementation.
+
+JOEYAES is not a replacement for a mature tool such as 7-Zip, which supports encrypted archives as well as compression. This implementation has not been independently reviewed, and CBC encryption alone does not authenticate data or detect tampering. Use it for learning and experimentation; for sensitive information, choose a maintained, independently reviewed security tool.
+
+The `joeyaes` program has no third-party library dependencies: the AES implementation, CBC mode, and file formats are written from scratch using only the C standard library plus operating-system facilities (POSIX headers and `/dev/urandom` on Linux; Windows APIs, including `bcrypt` for random numbers, on Windows). Unit tests use the bundled [Unity](test-framework/unity.h) framework, and OpenSSL is used only by a developer script that generates test vectors, so neither is needed to build or run the program.
+
+See:
 
 - [Program Overview](PROGRAM_OVERVIEW.md) for code structure and function
 - [Build](BUILD.md) for compilation and testing instructions using Linux
-- [Personal Reflections](PERSONAL_REFLECTIONS.md) for my takeaways from this project
+- [Personal Reflections](REFLECTIONS.md) for takeaways from the project
 
-Continue for installation of precompiled binaries and usage:
+The sections below cover installation and usage.
 
 ## Installation
 
@@ -112,7 +125,7 @@ Now encrypt your file:
 joeyaes encrypt plain_files/<your file name> ./ciphers cipher1 ./keys/key1.jky
 ```
 
-cipher1.jwy should now be in your cipher directory. .jwy files are the cipher files which contain the data and name of your original file but in cipher code. If you moved your key1.jky file somewhere secure, and you also deleted your original plain file, no-one would ever be able to read the file's original contents even if they could read the .jwy file on your computer and they had a copy of joeyaes. You could also send this file to someone(who you securely gave the private key) over a non-secure channel. Unless an observer had the private key, it would be completely impossible to interpret the contents of the original file. To decrypt the file with the private key, run
+cipher1.jwy should now be in your cipher directory. The .jwy file stores the encrypted file data and original file name. Because this project is educational and has not been security-reviewed, do not rely on it to protect confidential files or send sensitive data. To decrypt the file, run
 
 ```bash
 joeyaes decrypt ciphers/cipher1.jwy ./decrypted ./keys/key1.jky
